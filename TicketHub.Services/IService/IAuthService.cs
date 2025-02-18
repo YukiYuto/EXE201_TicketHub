@@ -7,6 +7,7 @@ namespace TicketHub.Services.IService;
 public interface IAuthService
 {
     Task<ResponseDto> SignUpCustomer(SignUpCustomerDto signUpCustomerDto);
+    Task<ResponseDto> SignUpOrganization(SignUpOrganizationDto signUpOrganizationDto);
     /*Task<ResponseDto> SignUpStaff(SignUpStaffDto signUpStaffDto);
     Task<ResponseDto> SignUpSkinTherapist(SignUpSkinTherapistDto signUpSkinTherapistDto);*/
     Task<ResponseDto> SignIn(SignInDto signDto);

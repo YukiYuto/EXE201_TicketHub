@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TicketHub.DataAccess\TicketHub.DataAccess.csproj" />
     <ProjectReference Include="..\TicketHub.Models\TicketHub.Models.csproj" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@ using TicketHub.Utility.ValidationAttribute;
 
 namespace TicketHub.Models.DTO.Authentication;
 
-public class SignUpCustomerDto
+public class SignUpOrganizationDto
 {
     [Required]
     [DataType(DataType.EmailAddress)]
@@ -23,20 +23,16 @@ public class SignUpCustomerDto
     public string ConfirmPassword { get; set; } = null!;
  
     [Required]
-    [Cccd]
-    public string CCCD { get; set; } = null!;
-
-    [Required]
-    [DataType(DataType.DateTime)]
-    public DateTime BirthDate { get; set; }
-
+    [StringLength(50)]
+    public string? TaxId { get; set; }
+    
     [Required]
     [DataType(DataType.PhoneNumber)]
     [Phone]
     public string PhoneNumber { get; set; } = null!;
  
     [Required]
-    public string FullName { get; set; } = null!;
+    public string OrganizationName { get; set; } = null!;
 
     [Required]
     public string Country { get; set; } = null!;

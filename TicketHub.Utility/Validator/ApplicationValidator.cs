@@ -1,4 +1,4 @@
-﻿using TicketHub.Models.Domain;
+﻿/*using TicketHub.Models.Domain;
 
 namespace TicketHub.Utility.Validator;
 using FluentValidation;
@@ -27,4 +27,4 @@ public class ApplicationUserValidator : AbstractValidator<ApplicationUser>
                 .NotEmpty().WithMessage("Tax ID is required for organizers.");
         });
     }
-}
+}*/
