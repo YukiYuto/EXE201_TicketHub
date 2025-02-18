@@ -8,6 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TicketHub.DataAccess\TicketHub.DataAccess.csproj" />
+    <ProjectReference Include="..\TicketHub.Models\TicketHub.Models.csproj" />
+    <ProjectReference Include="..\TicketHub.Utility\TicketHub.Utility.csproj" />
   </ItemGroup>
 
 </Project>
