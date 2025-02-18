@@ -120,7 +120,7 @@ public class TokenService : ITokenService
             issuer: _configuration["JWT:ValidIssuer"],
             audience: _configuration["JWT:ValidAudience"],
             notBefore: DateTime.Now,
-            expires: DateTime.Now.AddDays(1), //Expiration time is 3 days
+            expires: DateTime.Now.AddDays(1), //Expiration time is 1 day
             claims: authClaims,
             signingCredentials: signingCredentials
         );
@@ -134,8 +134,8 @@ public class TokenService : ITokenService
     public async Task<bool> StoreRefreshToken(string userId, string refreshToken)
     {
         string redisKey = $"userId:{userId}:refreshToken";
-        var result = await _redisService.StoreString(redisKey, refreshToken);
-        return true;
+        var result = await _redisService.StoreString(redisKey, refreshToken, TimeSpan.FromDays(1)); 
+        return result;
     }
 
     public async Task<ClaimsPrincipal> GetPrincipalFromToken(string token)

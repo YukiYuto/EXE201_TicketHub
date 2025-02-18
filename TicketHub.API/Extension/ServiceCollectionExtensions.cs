@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRedisService, RedisService>();
+        services.AddScoped<IEmailService, EmailService>();
         return services;
     }
 }

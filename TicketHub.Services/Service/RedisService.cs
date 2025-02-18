@@ -18,10 +18,10 @@ public class RedisService : IRedisService
     /// <param name="key"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public async Task<bool> StoreString(string key, string value)
+    public async Task<bool> StoreString(string key, string value, TimeSpan? expiry = null)
     {
         var cache = _redis.GetDatabase();
-        var result = await cache.StringSetAsync(key, value);
+        var result = await cache.StringSetAsync(key, value, expiry ?? TimeSpan.FromDays(1)); // Mặc định TTL là 1 ngày
         return result;
     }
 
