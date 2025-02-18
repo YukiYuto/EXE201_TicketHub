@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TicketHub.DataAccess\TicketHub.DataAccess.csproj" />
+    <ProjectReference Include="..\TicketHub.Services\TicketHub.Services.csproj" />
     <ProjectReference Include="..\TicketHub.Utility\TicketHub.Utility.csproj" />
   </ItemGroup>
 

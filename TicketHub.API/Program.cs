@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using TicketHub.API.Extension;
 using TicketHub.DataAccess.Context;
 using TicketHub.Models.Domain;
+using TicketHub.Services.Mapping;
 using TicketHub.Utility.Constants;
 
 namespace TicketHub.API
@@ -17,8 +19,10 @@ namespace TicketHub.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
+            
+            // Register AutoMapper
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
             // Configure DbContext with SQL Server
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -83,7 +87,9 @@ namespace TicketHub.API
 
 
             // Register services from Extensions
-            //builder.Services.RegisterServices(builder.Configuration);
+            builder.Services.RegisterServices(builder.Configuration);
+            
+            
 
             var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
             builder.Services.AddCors(options =>

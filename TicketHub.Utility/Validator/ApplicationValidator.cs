@@ -1,4 +1,4 @@
-﻿using TicketHub.Models.Domain;
+﻿/*using TicketHub.Models.Domain;
 
 namespace TicketHub.Utility.Validator;
 using FluentValidation;
@@ -19,7 +19,7 @@ public class ApplicationUserValidator : AbstractValidator<ApplicationUser>
                 .NotEmpty().WithMessage("BirthDate is required for customers.");
         });
 
-        When(user => user.UserType == "Organizer", () =>
+        When(user => user.UserType == "Organizer", () =>    
         {
             RuleFor(user => user.OrganizationName)
                 .NotEmpty().WithMessage("Organization Name is required for organizers.");
@@ -27,4 +27,4 @@ public class ApplicationUserValidator : AbstractValidator<ApplicationUser>
                 .NotEmpty().WithMessage("Tax ID is required for organizers.");
         });
     }
-}
+}*/
