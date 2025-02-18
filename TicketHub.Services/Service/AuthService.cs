@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
@@ -14,19 +15,21 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ITokenService _tokenService;
+    private readonly JwtSecurityTokenHandler _tokenHandler;
 
     public AuthService
     (
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        /*ITokenService tokenService,*/
+        ITokenService tokenService,
         IUnitOfWork unitOfWork
     )
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        /*_tokenService = tokenService;
-        _tokenHandler = new JwtSecurityTokenHandler();*/
+        _tokenService = tokenService;
+        _tokenHandler = new JwtSecurityTokenHandler();
         _unitOfWork = unitOfWork;
         /*_mapperService = mapperService;
         _emailService = emailService;*/
@@ -219,9 +222,80 @@ public class AuthService : IAuthService
     }
 
 
-    public Task<ResponseDto> SignIn(SignInDto signDto)
+    public async Task<ResponseDto> SignIn(SignInDto signDto)
     {
-        throw new NotImplementedException();
+        var user = await _userManager.FindByEmailAsync(signDto.Email);
+        if (user == null)
+        {
+            return new ResponseDto()
+            {
+                Message = "User does not exist!",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, signDto.Password);
+
+        if (!isPasswordCorrect)
+        {
+            return new ResponseDto()
+            {
+                Message = "Incorrect email or password",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 400
+            };
+        }
+
+        var role = await _userManager.GetRolesAsync(user);
+
+        if (!user.EmailConfirmed)
+        {
+            return new ResponseDto()
+            {
+                Message = "You need to confirm email!",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 401
+            };
+        }
+
+        if (user.LockoutEnd is not null)
+        {
+            return new ResponseDto()
+            {
+                Message = "User has been locked",
+                IsSuccess = false,
+                StatusCode = 403,
+                Result = null
+            };
+        }
+
+        string accessToken;
+        if (role.Contains(StaticUserRoles.Organization))
+        {
+            accessToken = await _tokenService.GenerateJwtAccessTokenOrganizationAsync(user);
+        }
+        else
+        {
+            accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+        }
+        var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
+        await _tokenService.StoreRefreshToken(user.Id, refreshToken);
+
+        return new ResponseDto()
+        {
+            Result = new SignInResponseDto()
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+            },
+            Message = "Sign in successfully",
+            IsSuccess = true,
+            StatusCode = 200
+        };
     }
 
     public Task<ResponseDto> GetUserById(Guid userId)

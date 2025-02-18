@@ -88,6 +88,8 @@ namespace TicketHub.API
 
             // Register services from Extensions
             builder.Services.RegisterServices(builder.Configuration);
+            
+            
 
             var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
             builder.Services.AddCors(options =>
