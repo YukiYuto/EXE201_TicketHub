@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TicketHub.DataAccess.Context;
 using TicketHub.Models.Domain;
+using TicketHub.Services.Mapping;
 using TicketHub.Utility.Constants;
 
 namespace TicketHub.API
@@ -19,6 +20,9 @@ namespace TicketHub.API
             // Add services to the container.
 
             builder.Services.AddControllers();
+            
+            // Register AutoMapper
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
             // Configure DbContext with SQL Server
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
