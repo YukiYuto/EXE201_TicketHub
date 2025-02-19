@@ -19,6 +19,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Event> Events { get; set; }
     public DbSet<Orders> Orders { get; set; }
     public DbSet<OrderTicket> OrderTickets { get; set; }
+    public DbSet<ChatRoom> ChatRooms { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,7 +78,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade); // Allow cascading delete for Ticket when deleted
 
 
-        /*modelBuilder.Entity<ChatRoom>()
+        modelBuilder.Entity<ChatRoom>()
         .HasOne(c => c.SendMessageUser)
         .WithMany()
         .HasForeignKey(c => c.SendMessageUserId)
@@ -86,6 +88,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(c => c.ReceiveMessageUser)
             .WithMany()
             .HasForeignKey(c => c.ReceiveMessageUserId)
-            .OnDelete(DeleteBehavior.Restrict);  // Avoid cascade*/
+            .OnDelete(DeleteBehavior.Restrict);  // Avoid cascade
     }
 }

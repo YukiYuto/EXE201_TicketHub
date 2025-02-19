@@ -326,6 +326,40 @@ namespace TicketHub.DataAccess.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.Property<Guid>("ChatRoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NameRoom")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReceiveMessageUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SendMessageUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ChatRoomId");
+
+                    b.HasIndex("ReceiveMessageUserId");
+
+                    b.HasIndex("SendMessageUserId");
+
+                    b.ToTable("ChatRooms");
+                });
+
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>
                 {
                     b.Property<Guid>("EventId")
@@ -378,6 +412,36 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Message", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MessageContent")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("ReceiveMessageUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SendMessageUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ChatRoomId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.OrderTicket", b =>
@@ -599,6 +663,34 @@ namespace TicketHub.DataAccess.Migrations
                     b.Navigation("ParentCategory");
                 });
 
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.HasOne("TicketHub.Models.Domain.ApplicationUser", "ReceiveMessageUser")
+                        .WithMany()
+                        .HasForeignKey("ReceiveMessageUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TicketHub.Models.Domain.ApplicationUser", "SendMessageUser")
+                        .WithMany()
+                        .HasForeignKey("SendMessageUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReceiveMessageUser");
+
+                    b.Navigation("SendMessageUser");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Message", b =>
+                {
+                    b.HasOne("TicketHub.Models.Domain.ChatRoom", "ChatRoom")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatRoomId");
+
+                    b.Navigation("ChatRoom");
+                });
+
             modelBuilder.Entity("TicketHub.Models.Domain.OrderTicket", b =>
                 {
                     b.HasOne("TicketHub.Models.Domain.Orders", "Orders")
@@ -686,6 +778,11 @@ namespace TicketHub.DataAccess.Migrations
             modelBuilder.Entity("TicketHub.Models.Domain.Cart", b =>
                 {
                     b.Navigation("CartItems");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>
