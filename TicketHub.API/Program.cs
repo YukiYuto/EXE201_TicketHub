@@ -20,7 +20,7 @@ namespace TicketHub.API
 
             // Add services to the container.
             builder.Services.AddControllers();
-            
+
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -88,10 +88,10 @@ namespace TicketHub.API
 
             // Register services from Extensions
             builder.Services.RegisterServices(builder.Configuration);
-            
-            
 
-            var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+
+            /*var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigins",
@@ -102,11 +102,26 @@ namespace TicketHub.API
                             .AllowAnyMethod()
                             .AllowCredentials();
                     });
+            });*/
+
+
+            //AllowAll Cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
             });
+
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
 
