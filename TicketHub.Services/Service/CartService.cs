@@ -45,8 +45,7 @@ public class CartService : ICartService
             await _unitOfWork.SaveAsync();
         }
 
-        var cartItems =
-            await _unitOfWork.CartItemRepository.GetAllAsync(x => x.CartId == cart.CartId, includeProperties: "Ticket");
+        var cartItems = await _unitOfWork.CartItemRepository.GetAllAsync(x => x.CartId == cart.CartId, includeProperties: "Ticket");
         var cartDto = _mapper.Map<CartDto>(cart);
         cartDto.CartItemsDtos = _mapper.Map<List<CartItemDto>>(cartItems);
 
