@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using TicketHub.DataAccess.Seeding;
 using TicketHub.Models.Domain;
 
 namespace TicketHub.DataAccess.Context;
@@ -21,10 +22,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<OrderTicket> OrderTickets { get; set; }
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Seed data
+        ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
 
         modelBuilder.Entity<CartItem>()
             .HasKey(ci => new { ci.CartId, ci.TicketId });
@@ -79,15 +85,27 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
 
         modelBuilder.Entity<ChatRoom>()
-        .HasOne(c => c.SendMessageUser)
-        .WithMany()
-        .HasForeignKey(c => c.SendMessageUserId)
-        .OnDelete(DeleteBehavior.Restrict);  // Or NoAction, depending on your needs
+            .HasOne(c => c.SendMessageUser)
+            .WithMany()
+            .HasForeignKey(c => c.SendMessageUserId)
+            .OnDelete(DeleteBehavior.Restrict); // Or NoAction, depending on your needs
 
         modelBuilder.Entity<ChatRoom>()
             .HasOne(c => c.ReceiveMessageUser)
             .WithMany()
             .HasForeignKey(c => c.ReceiveMessageUserId)
-            .OnDelete(DeleteBehavior.Restrict);  // Avoid cascade
+            .OnDelete(DeleteBehavior.Restrict); // Avoid cascade
+        
+        //OrderNumber is unique
+        modelBuilder.Entity<Orders>()
+            .HasIndex(o => o.OrderNumber)
+            .IsUnique();
+        
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.Orders)
+            .WithMany()
+            .HasForeignKey(p => p.OrderNumber)
+            .HasPrincipalKey(o => o.OrderNumber)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

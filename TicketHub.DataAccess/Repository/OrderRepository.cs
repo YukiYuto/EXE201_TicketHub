@@ -29,4 +29,9 @@ public class OrderRepository :  Repository<Orders>, IOrderRepository
     {
         return await _context.Orders.FirstOrDefaultAsync(x => x.OrderId == orderId);
     }
+
+    public async Task<Orders> GetAppointmentByOrderNumber(long orderNumber)
+    {
+        return await _context.Orders.FirstOrDefaultAsync(x => x.OrderNumber == orderNumber);
+    }
 }

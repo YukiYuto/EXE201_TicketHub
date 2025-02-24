@@ -20,7 +20,7 @@ namespace TicketHub.API
 
             // Add services to the container.
             builder.Services.AddControllers();
-            
+
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -81,30 +81,63 @@ namespace TicketHub.API
                     ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
                     ValidAudience = builder.Configuration["JWT:ValidAudience"],
                     IssuerSigningKey =
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]!))
                 };
             });
 
 
             // Register services from Extensions
             builder.Services.RegisterServices(builder.Configuration);
-            
-            
+
+            // Register Firebase Service
+            builder.Services.AddFirebaseService();
 
             var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowSpecificOrigins",
-                    builder =>
-                    {
-                        builder.WithOrigins(corsOrigins)
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
-                    });
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()      // Cho phép tất cả các origin
+                        .AllowAnyHeader()      // Cho phép tất cả header
+                        .AllowAnyMethod();     // Cho phép tất cả method (GET, POST, etc.)
+                });
             });
 
             var app = builder.Build();
+
+            // Middleware để xử lý CORS
+            app.Use(async (context, next) =>
+            {
+                var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger("CORSMiddleware");
+
+                logger.LogInformation($"Request from origin: {context.Request.Headers["Origin"]}");
+                logger.LogInformation($"Request method: {context.Request.Method}");
+                logger.LogInformation($"Request path: {context.Request.Path}");
+
+                if (context.Request.Method == "OPTIONS")
+                {
+                    context.Response.Headers.Add("Access-Control-Allow-Origin", context.Request.Headers["Origin"]);
+                    context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
+                    context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                    context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+                    context.Response.StatusCode = 200;
+                    await context.Response.CompleteAsync();
+                }
+                else
+                {
+                    await next();
+                }
+
+                if (context.Response.Headers.ContainsKey("Access-Control-Allow-Origin"))
+                {
+                    logger.LogInformation(
+                        $"Response Access-Control-Allow-Origin: {context.Response.Headers["Access-Control-Allow-Origin"]}");
+                }
+            });
+
+            // Đặt UseCors ngay sau middleware này
+            app.UseCors("AllowAll");
 
             // Configure the HTTP request pipeline.
 
