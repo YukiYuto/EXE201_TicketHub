@@ -111,8 +111,8 @@ public class OrderService : IOrderService
 
     public async Task<ResponseDto> GetOrder(ClaimsPrincipal user, Guid orderId)
     {
-        var orderID = await _unitOfWork.OrderRepository.GetById(orderId);
-        if (orderID == null)
+        var order = await _unitOfWork.OrderRepository.GetById(orderId);
+        if (order == null)
         {
             return new ResponseDto
             {
@@ -123,7 +123,7 @@ public class OrderService : IOrderService
             };
         }
 
-        var orderDto = _mapper.Map<GetOrderDto>(orderID);
+        var orderDto = _mapper.Map<GetOrderDto>(order);
 
         return new ResponseDto
         {
