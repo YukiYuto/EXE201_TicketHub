@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TicketHub.DataAccess.Context;
 
@@ -11,9 +12,11 @@ using TicketHub.DataAccess.Context;
 namespace TicketHub.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250219075534_MigrationDbSeed")]
+    partial class MigrationDbSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,7 +299,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatar.png",
                             BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789123",
-                            ConcurrencyStamp = "341e26e8-a871-446e-964b-be2e84878dae",
+                            ConcurrencyStamp = "6bdd37b1-9b3c-4bce-b2c4-89e694f6e4a9",
                             Country = "Country",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
@@ -304,10 +307,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEA6fBSx+ijBP/WuGnnvRQ5n+hq7EbwOkA1D0amnIssZfndgEXORnhqBX5tIhGd4kIQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECTEL00f4SFPe/TlBwjscPcDLxpNTF+cQlrUNoXFxd77JwE56V9xVZTQUdBVAlFyEA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "f5f92edc-1262-4a00-8b18-10af4f04de68",
+                            SecurityStamp = "5dbd9c1f-1456-4d51-b03a-645d6ab03b29",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com"
                         },
@@ -319,7 +322,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatarStaff2.png",
                             BirthDate = new DateTime(1991, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789124",
-                            ConcurrencyStamp = "b9051f06-79f2-4228-9c4e-4bafd802b7b1",
+                            ConcurrencyStamp = "5a18bf84-aec9-43c1-9668-99e6ac4dbf2b",
                             Country = "Country",
                             Email = "staff2@gmail.com",
                             EmailConfirmed = true,
@@ -327,10 +330,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "STAFF2@GMAIL.COM",
                             NormalizedUserName = "STAFF2@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBe+9D8XXWxtEbLD3bmVR9WpyKGeUjuocp+FUxOn0GqFQzo6T6u1YdyIulSnZ5EKTQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEF84xFJIq+r9NnFYk7O3t45AhWreJGaB4krmbGcCtZhfvFLZdXXlM8QqcP3IQk010A==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "b3d19811-42e5-4ab0-8f53-fa8feca4f1aa",
+                            SecurityStamp = "85054fb2-b37d-4f63-8be3-73b179b7b88d",
                             TwoFactorEnabled = false,
                             UserName = "staff2@gmail.com"
                         },
@@ -342,7 +345,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatarStaff.png",
                             BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789126",
-                            ConcurrencyStamp = "fff396d8-b090-4afe-b11b-a8f4e5aec659",
+                            ConcurrencyStamp = "322c7161-4fcd-470f-a3f4-377bb3573861",
                             Country = "Country",
                             Email = "staff1@gmail.com",
                             EmailConfirmed = true,
@@ -350,10 +353,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "STAFF1@GMAIL.COM",
                             NormalizedUserName = "STAFF1@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGG9bn2u/G6+GLotTtcRfG7NDes5g5JfJJ1u12uBRXviY+ZNhc8GldSZTDqYNimo9A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECYfTSpLQI7B3Gce/aWU0UeVEM6OKKwpKEqMivTAeDPBGYNMwxItZcsp3mInAH3p9A==",
                             PhoneNumber = "0123456789",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "ccc551a6-8743-4786-9593-9ca91b002f1a",
+                            SecurityStamp = "23c53d27-072a-4375-abd1-5a050076fd6a",
                             TwoFactorEnabled = false,
                             UserName = "staff1@gmail.com"
                         });
@@ -569,9 +572,6 @@ namespace TicketHub.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long>("OrderNumber")
-                        .HasColumnType("bigint");
-
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
 
@@ -582,55 +582,9 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasKey("OrderId");
 
-                    b.HasIndex("OrderNumber")
-                        .IsUnique();
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
-                {
-                    b.Property<Guid>("PaymentTransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CancelUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("ExpiredAt")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("OrderNumber")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ReturnUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Signature")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PaymentTransactionId");
-
-                    b.HasIndex("OrderNumber");
-
-                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
@@ -872,17 +826,6 @@ namespace TicketHub.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
-                });
-
-            modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
-                {
-                    b.HasOne("TicketHub.Models.Domain.Orders", "Orders")
-                        .WithMany()
-                        .HasForeignKey("OrderNumber")
-                        .HasPrincipalKey("OrderNumber")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
