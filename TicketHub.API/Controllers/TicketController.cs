@@ -116,5 +116,26 @@ namespace TicketHub.API.Controllers
             var responseDto = await _ticketService.RejectTicket(User, ticketId);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
+        
+        [HttpGet("generate-qr-code")]
+        public async Task<ActionResult<ResponseDto>> GenerateQRCode(Guid ticketId, string serialNumber)
+        {
+            var responseDto = await _ticketService.GenerateQRCode(ticketId, serialNumber);
+
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
+
+        [HttpPost("scan-qr-code")]
+        public async Task<ActionResult<ResponseDto>> ScanQRCode([FromBody] TicketScanRequest request)
+        {
+            if (request == null || request.TicketId == Guid.Empty || string.IsNullOrEmpty(request.SerialNumber))
+                return BadRequest(new { message = "Dữ liệu không hợp lệ." });
+
+            var responseDto = await _ticketService.ValidateAndUpdateTicket(request.TicketId, request.SerialNumber);
+
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
+
+        
     }
 }
