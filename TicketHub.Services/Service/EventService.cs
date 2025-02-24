@@ -196,6 +196,7 @@ public class EventService : IEventService
             CreatedTime = DateTime.Now,
             UpdatedTime = null,
             Status = 1,
+            EventImage = createEventDto.EventImage
         };
 
         await _unitOfWork.EventRepository.AddAsync(newEvent);

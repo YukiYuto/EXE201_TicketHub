@@ -9,4 +9,5 @@ public class CreateEventDto
     public string City { get; set; } = null!;
     public string District { get; set; } = null!;
     public string Address { get; set; } = null!;
+    public string? EventImage { get; set; }
 }
