@@ -34,64 +34,29 @@ public class PaymentService : IPaymentService
     {
         try
         {
-            // Lấy đơn hàng theo OrderNumber
-            var order = await _unitOfWork.OrderRepository.GetAppointmentByOrderNumber(createPaymentLink.OrderNumber);
+            var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(createPaymentLink.OrderNumber);
             if (order is null)
             {
                 return new ResponseDto()
                 {
-                    Message = "Order does not exist",
+                    Message = "Appointment is not exist",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
             }
-
-            //  Lấy danh sách TicketId từ bảng quan hệ OrderTickets
-            var ticketIds = order.OrderTickets?.Select(ot => ot.TicketId).ToList();
-            if (ticketIds == null || !ticketIds.Any())
-            {
-                return new ResponseDto()
-                {
-                    Message = "No tickets found for this order",
-                    IsSuccess = false,
-                    StatusCode = 404,
-                    Result = null
-                };
-            }
-
-            // Lấy danh sách vé từ TicketRepository dựa vào danh sách TicketId
-            var tickets = await _unitOfWork.TicketRepository.GetListAsync(t => ticketIds.Contains(t.TicketId));
-            if (tickets == null || !tickets.Any())
-            {
-                return new ResponseDto()
-                {
-                    Message = "No valid tickets found",
-                    IsSuccess = false,
-                    StatusCode = 404,
-                    Result = null
-                };
-            }
-
-            // Tạo danh sách items từ danh sách vé
-            var items = tickets.Select(ticket => new ItemData(
-                name: ticket.TicketName,
-                quantity: 1,
-                price: Convert.ToInt32(ticket.TicketPrice)
-            )).ToList();
-
-            // Tính tổng giá trị đơn hàng dựa trên danh sách vé
-            var totalPrice = items.Sum(i => i.price);
-
-            //  Tạo dữ liệu thanh toán
-            var paymentData = new PaymentData(
+            /*// Lấy tổng giá từ order (không cần tính lại)
+            var totalPrice = Convert.ToInt32(order.TotalPrice);
+            var ticket = await _unitOfWork.OrderTicketRepository.GetTicketByOrderId();
+            // Tạo dữ liệu thanh toán
+            /*var paymentData = new PaymentData(
                 orderCode: createPaymentLink.OrderNumber,
                 amount: totalPrice,
                 description: "Payment for tickets",
-                items: items,
+                items: items,  // Vẫn giữ danh sách vé để hiển thị chi tiết
                 cancelUrl: createPaymentLink.CancelUrl,
                 returnUrl: createPaymentLink.ReturnUrl
-            );
+            );#1#
 
             CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
 
@@ -111,6 +76,7 @@ public class PaymentService : IPaymentService
 
             await _unitOfWork.PaymentRepository.AddAsync(payment);
             await _unitOfWork.SaveAsync();
+            */
 
             return new ResponseDto()
             {
@@ -119,8 +85,8 @@ public class PaymentService : IPaymentService
                 StatusCode = 200,
                 Result = new
                 {
-                    result,
-                    PaymentTransactionId = payment.PaymentTransactionId
+                    /*result,
+                    PaymentTransactionId = payment.PaymentTransactionId*/
                 }
             };
         }
