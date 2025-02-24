@@ -95,11 +95,13 @@ namespace TicketHub.API
             var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", policy =>
+                options.AddPolicy("AllowSpecificOrigin", builder =>
                 {
-                    policy.AllowAnyOrigin()      // Cho phép tất cả các origin
-                        .AllowAnyHeader()      // Cho phép tất cả header
-                        .AllowAnyMethod();     // Cho phép tất cả method (GET, POST, etc.)
+                    builder
+                        .WithOrigins(corsOrigins ?? Array.Empty<string>())
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
 
@@ -137,7 +139,7 @@ namespace TicketHub.API
             });
 
             // Đặt UseCors ngay sau middleware này
-            app.UseCors("AllowAll");
+            app.UseCors("AllowSpecificOrigin");
 
             // Configure the HTTP request pipeline.
 

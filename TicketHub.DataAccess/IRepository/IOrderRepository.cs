@@ -9,4 +9,7 @@ public interface IOrderRepository : IRepository<Orders>
     Task<Orders> GetById(Guid orderId);
     
     Task<Orders> GetAppointmentByOrderNumber(long orderNumber);
+    Task<long> GenerateUniqueNumberAsync();
+    
+    Task<Orders?> GetByIdAsync(Guid orderId);
 }

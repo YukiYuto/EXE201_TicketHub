@@ -4,14 +4,16 @@ using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
 using TicketHub.DataAccess.IRepository;
+using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Payment;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Payment;
 
 namespace TicketHub.Services.Service;
 
-public class PaymentService 
-    //: IPaymentService
+public class PaymentService : IPaymentService
+//: IPaymentService
 {
     private readonly PayOS _payOS;
     private readonly IMapper _mapper;
@@ -28,56 +30,75 @@ public class PaymentService
         );
     }
 
-    /*public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
+    public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
     {
         try
         {
-            var order =
-                await _unitOfWork.OrderRepository.GetAppointmentByOrderNumber((createPaymentLink
-                    .OrderNumber));
+            // Lấy đơn hàng theo OrderNumber
+            var order = await _unitOfWork.OrderRepository.GetAppointmentByOrderNumber(createPaymentLink.OrderNumber);
             if (order is null)
             {
                 return new ResponseDto()
                 {
-                    Message = "order is not exist",
+                    Message = "Order does not exist",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
             }
 
-            var totalPrice = Convert.ToInt32(order.TotalPrice);
-            var ticket = await _unitOfWork.TicketRepository.GeTicketById();
-            var items = new List<ItemData>()
-            {
-                new ItemData(name: service.ServiceName, quantity: 1, price: totalPrice)
-            };
-
-
-            var paymentData = new PaymentData(
-                orderCode: createPaymentLink.AppointmentNumber,
-                amount: totalPrice,
-                description: "",
-                items: items,
-                cancelUrl: createPaymentLink.CancelUrl,
-                returnUrl: createPaymentLink.ReturnUrl
-            );
-            if (paymentData is null)
+            //  Lấy danh sách TicketId từ bảng quan hệ OrderTickets
+            var ticketIds = order.OrderTickets?.Select(ot => ot.TicketId).ToList();
+            if (ticketIds == null || !ticketIds.Any())
             {
                 return new ResponseDto()
                 {
-                    Message = "Payment is missing data",
+                    Message = "No tickets found for this order",
                     IsSuccess = false,
-                    StatusCode = 500,
+                    StatusCode = 404,
                     Result = null
                 };
             }
 
+            // Lấy danh sách vé từ TicketRepository dựa vào danh sách TicketId
+            var tickets = await _unitOfWork.TicketRepository.GetListAsync(t => ticketIds.Contains(t.TicketId));
+            if (tickets == null || !tickets.Any())
+            {
+                return new ResponseDto()
+                {
+                    Message = "No valid tickets found",
+                    IsSuccess = false,
+                    StatusCode = 404,
+                    Result = null
+                };
+            }
+
+            // Tạo danh sách items từ danh sách vé
+            var items = tickets.Select(ticket => new ItemData(
+                name: ticket.TicketName,
+                quantity: 1,
+                price: Convert.ToInt32(ticket.TicketPrice)
+            )).ToList();
+
+            // Tính tổng giá trị đơn hàng dựa trên danh sách vé
+            var totalPrice = items.Sum(i => i.price);
+
+            //  Tạo dữ liệu thanh toán
+            var paymentData = new PaymentData(
+                orderCode: createPaymentLink.OrderNumber,
+                amount: totalPrice,
+                description: "Payment for tickets",
+                items: items,
+                cancelUrl: createPaymentLink.CancelUrl,
+                returnUrl: createPaymentLink.ReturnUrl
+            );
+
             CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
 
-            PaymentTransactions paymentTransactions = new PaymentTransactions()
+            //  Lưu thông tin thanh toán vào database
+            Payment payment = new Payment()
             {
-                AppointmentNumber = createPaymentLink.AppointmentNumber,
+                OrderNumber = createPaymentLink.OrderNumber,
                 Amount = result.amount,
                 Description = result.description.Trim(),
                 CancelUrl = paymentData.cancelUrl,
@@ -85,11 +106,12 @@ public class PaymentService
                 ExpiredAt = paymentData.expiredAt,
                 Signature = paymentData.signature,
                 CreatedAt = DateTime.Now,
-                Status = StaticPayment.paymentStatusDefault
+                Status = StaticPayment.paymentStatusPending
             };
 
-            await _unitOfWork.PaymentTransactionsRepository.AddAsync(paymentTransactions);
+            await _unitOfWork.PaymentRepository.AddAsync(payment);
             await _unitOfWork.SaveAsync();
+
             return new ResponseDto()
             {
                 Message = "Create payment link successfully",
@@ -98,7 +120,7 @@ public class PaymentService
                 Result = new
                 {
                     result,
-                    PaymentTransactionId = paymentTransactions.PaymentTransactionId
+                    PaymentTransactionId = payment.PaymentTransactionId
                 }
             };
         }
@@ -114,14 +136,78 @@ public class PaymentService
         }
     }
 
-    public Task<ResponseDto> UpdatePayOsPaymentStatus(ClaimsPrincipal User, Guid paymentTransactionId)
+    public async Task<ResponseDto> UpdatePayOsPaymentStatus(ClaimsPrincipal User, Guid paymentTransactionId)
     {
-        throw new NotImplementedException();
+        /*try
+        {
+            PaymentTransactions paymentTransactions =
+                await _unitOfWork.PaymentTransactionsRepository.GetById(paymentTransactionId);
+            if (paymentTransactions is null)
+            {
+                return new ResponseDto()
+                {
+                    Message = "Payment transaction is not exist",
+                    IsSuccess = false,
+                    StatusCode = 404,
+                    Result = null
+                };
+            }
+
+            long orderNumber = (long)paymentTransactions.AppointmentNumber;
+            var paymentStatus = _payOS.getPaymentLinkInformation(orderNumber);
+
+            if (paymentStatus != null)
+            {
+                paymentTransactions.Status = paymentStatus.Result.status;
+            }
+
+            _unitOfWork.PaymentTransactionsRepository.Update(paymentTransactions);
+            await _unitOfWork.SaveAsync();
+
+            if (paymentTransactions.Status.Equals(StaticPayment.paymentStatusSucess))
+            {
+                var appointment = await _unitOfWork.AppointmentRepository.GetAppointmentByAppmointNumer(orderNumber);
+                Transaction transaction = new Transaction()
+                {
+                    CustomerId = appointment.CustomerId,
+                    AppointmentId = appointment.AppointmentId,
+                    PaymentTransactionId = paymentTransactionId,
+                    Amount = paymentTransactions.Amount,
+                    TransactionMethod = "Tranfer",
+                    TransactionDateTime = DateTime.Now
+                };
+
+                await _unitOfWork.TransactionsRepository.AddAsync(transaction);
+                await _unitOfWork.SaveAsync();
+
+                appointment.BookingStatus = 1;
+                _unitOfWork.AppointmentRepository.Update(appointment);
+                await _unitOfWork.SaveAsync();
+            }*/
+
+        return new ResponseDto()
+        {
+            Message = "Update status successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            //Result = paymentStatus.Result
+        };
+        /*}
+        catch (Exception e)
+        {
+            return new ResponseDto()
+            {
+                Message = e.Message,
+                IsSuccess = false,
+                StatusCode = 500,
+                Result = null
+            };
+        }*/
     }
 
     public Task<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId,
         string cancellationReason)
     {
         throw new NotImplementedException();
-    }*/
+    }
 }

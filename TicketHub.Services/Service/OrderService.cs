@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
@@ -12,19 +13,27 @@ public class OrderService : IOrderService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+    public OrderService
+    (
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        UserManager<ApplicationUser> userManager
+    )
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userManager = userManager;
     }
 
 
-    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery, string? sortBy, int pageNumber = 1, int pageSize = 10)
+    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
+        string? sortBy, int pageNumber = 1, int pageSize = 10)
     {
         IEnumerable<Orders> allOrders = null!;
         allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
-        
+
         if (!allOrders.Any())
         {
             return new ResponseDto()
@@ -35,21 +44,23 @@ public class OrderService : IOrderService
                 Result = null
             };
         }
-        
+
         var listOrders = allOrders.ToList();
 
         if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
         {
             switch (filterOn.Trim().ToLower())
-            {   
+            {
                 case "TotalPrice":
-                    listOrders = listOrders.Where(x => x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    listOrders = listOrders.Where(x =>
+                            x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
+                        .ToList();
                     break;
                 default:
                     break;
             }
         }
-        
+
         if (!string.IsNullOrEmpty(sortBy))
         {
             var sortParams = sortBy.Trim().ToLower().Split('_'); // Chia chuỗi sortBy theo ký tự '_'
@@ -59,11 +70,11 @@ public class OrderService : IOrderService
             switch (sortField)
             {
                 case "TotalPrice":
-                    listOrders = sortDirection.Equals("desc") 
-                        ? listOrders.OrderByDescending(x => x.TotalPrice).ToList() 
+                    listOrders = sortDirection.Equals("desc")
+                        ? listOrders.OrderByDescending(x => x.TotalPrice).ToList()
                         : listOrders.OrderBy(x => x.TotalPrice).ToList();
                     break;
-                
+
                 default:
                     listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
                     break;
@@ -73,14 +84,14 @@ public class OrderService : IOrderService
         {
             listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
         }
-        
+
         // Phân trang
         if (pageNumber > 0 && pageSize > 0)
         {
             var skipResult = (pageNumber - 1) * pageSize;
             listOrders = listOrders.Skip(skipResult).Take(pageSize).ToList();
         }
-        
+
         // Chuyển đổi danh sách sự kiện thành DTO
         var orderDto = listOrders.Select(eventItem => new GetOrderDto()
         {
@@ -122,26 +133,84 @@ public class OrderService : IOrderService
             StatusCode = 201
         };
     }
-
-    public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto)
+    
+    
+    //Create Order phải check xem vé có còn không, nếu không còn thì không thể tạo đơn hàng 
+    public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user)
     {
-        Orders newOrder = new Orders()
+        try
         {
-            OrderId = createOrderDto.OrderId,
-            UserId = createOrderDto.UserId,
-            TotalPrice = createOrderDto.TotalPrice
-        };
-        
-        await _unitOfWork.OrderRepository.AddAsync(newOrder);
-        await _unitOfWork.SaveAsync();
+            // Lấy userId từ token
+            var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
 
-        return new ResponseDto
+            // Lấy giỏ hàng của user
+            var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId,
+                includeProperties: "CartItems.Ticket");
+            if (cart == null || !cart.CartItems.Any())
+            {
+                return new ResponseDto
+                {
+                    Message = "Cart is empty, cannot create order",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            // Tạo đơn hàng từ giỏ hàng
+            var newOrder = new Orders
+            {
+                OrderId = Guid.NewGuid(),
+                UserId = userId,
+                TotalPrice = cart.TotalAmount, 
+                OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync(),
+            };
+
+            // Sau khi newOrder đã được khai báo, mới sử dụng nó trong danh sách OrderTickets
+            newOrder.OrderTickets = cart.CartItems.Select(cartItem => new OrderTicket
+            {
+                OrderId = newOrder.OrderId, // Lúc này newOrder đã tồn tại, không còn lỗi
+                TicketId = cartItem.TicketId
+            }).ToList();
+
+            // Thêm đơn hàng vào DB
+            await _unitOfWork.OrderRepository.AddAsync(newOrder);
+            await _unitOfWork.SaveAsync();
+
+            // Xóa giỏ hàng sau khi tạo đơn hàng
+            _unitOfWork.CartItemRepository.RemoveRange(cart.CartItems);
+            cart.TotalAmount = 0;
+            _unitOfWork.CartRepository.Update(cart);
+            await _unitOfWork.SaveAsync();
+
+            // Chuyển đổi order sang DTO
+            var orderDto = _mapper.Map<GetOrderDto>(newOrder);
+
+            return new ResponseDto
+            {
+                Message = "Order created successfully",
+                Result = orderDto,
+                IsSuccess = true,
+                StatusCode = 201
+            };
+        }
+        catch (Exception e)
         {
-            Message = "Order created successfully",
-            Result = _mapper.Map<GetOrderDto>(newOrder),
-            IsSuccess = true,
-            StatusCode = 201
-        };
+            return new ResponseDto
+            {
+                Message = e.Message,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 
     public async Task<ResponseDto> UpdateOrder(ClaimsPrincipal user, UpdateOrderDto updateOrderDto)
@@ -157,10 +226,10 @@ public class OrderService : IOrderService
                 StatusCode = 404
             };
         }
-        
+
         orderId.UserId = updateOrderDto.UserId;
         orderId.TotalPrice = updateOrderDto.TotalPrice;
-        
+
         _unitOfWork.OrderRepository.Update(orderId);
         var order = await _unitOfWork.SaveAsync();
 
@@ -172,6 +241,7 @@ public class OrderService : IOrderService
             StatusCode = 200
         };
     }
+
 
     public async Task<ResponseDto> DeleteOrder(ClaimsPrincipal user, Guid orderId)
     {
@@ -186,10 +256,10 @@ public class OrderService : IOrderService
                 StatusCode = 404
             };
         }
-        
+
         _unitOfWork.OrderRepository.Remove(order);
         var delete = await _unitOfWork.SaveAsync();
-        
+
         return new ResponseDto
         {
             Message = "Order deleted successfully",

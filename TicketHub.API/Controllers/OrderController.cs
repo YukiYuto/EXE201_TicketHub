@@ -11,12 +11,12 @@ namespace TicketHub.API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
-    
+
         public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
         }
-    
+
         [HttpGet]
         public async Task<ActionResult<ResponseDto>> GetOders
         (
@@ -30,7 +30,7 @@ namespace TicketHub.API.Controllers
             var responseDto = await _orderService.GetOrders(User, filterOn, filterQuery, sortBy, pageNumber, pageSize);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpGet("{orderId}")]
         public async Task<ActionResult<ResponseDto>> GetOrder
         (
@@ -40,18 +40,15 @@ namespace TicketHub.API.Controllers
             var responseDto = await _orderService.GetOrder(User, orderId);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<ResponseDto>> CreateOrder
-        (
-            [FromBody] CreateOrderDto createOrderDto
-        )
+        public async Task<ActionResult<ResponseDto>> CreateOrder()
         {
-            var responseDto = await _orderService.CreateOrder(User, createOrderDto);
+            var responseDto = await _orderService.CreateOrder(User);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpPut]
         [Authorize]
         public async Task<ActionResult<ResponseDto>> UpdateOrder
@@ -62,7 +59,7 @@ namespace TicketHub.API.Controllers
             var responseDto = await _orderService.UpdateOrder(User, updateOrderDto);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpDelete("{orderId}")]
         [Authorize]
         public async Task<ActionResult<ResponseDto>> DeleteOrder
@@ -73,6 +70,5 @@ namespace TicketHub.API.Controllers
             var responseDto = await _orderService.DeleteOrder(User, orderId);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
     }
 }
