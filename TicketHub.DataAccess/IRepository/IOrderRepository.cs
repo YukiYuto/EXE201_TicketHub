@@ -8,7 +8,7 @@ public interface IOrderRepository : IRepository<Orders>
     void UpdateRange(IEnumerable<Orders> orders);
     Task<Orders> GetById(Guid orderId);
     
-    Task<Orders> GetAppointmentByOrderNumber(long orderNumber);
+    Task<Orders> GetOrderByOrderNumber(long orderNumber);
     Task<long> GenerateUniqueNumberAsync();
     
     Task<Orders?> GetByIdAsync(Guid orderId);
