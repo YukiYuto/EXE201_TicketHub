@@ -225,7 +225,7 @@ public class TicketService : ITicketService
         };
     }
 
-    /*public async Task<ResponseDto> CreateTicket(ClaimsPrincipal user, CreateTicketDto createTicketDto)
+    public async Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDto)
     {
         var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -279,13 +279,10 @@ public class TicketService : ITicketService
             StatusCode = 201,
             Result = ticket
         };
-    }*/
-/*    public Task<ResponseDto> CreateTicket(ClaimsPrincipal user, List<CreateTicketDto> createTicketDtos)
-    {
-        throw new NotImplementedException();
-    }*/
+    }
 
-    public async Task<ResponseDto> CreateTicket(ClaimsPrincipal user, List<CreateTicketDto> createTicketDtos)
+    public async Task<ResponseDto> CreateTicketByOrganiztion(ClaimsPrincipal user,
+        List<CreateTicketDto> createTicketDtos)
     {
         var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -329,7 +326,7 @@ public class TicketService : ITicketService
                 SerialNumber = createTicketDto.SerialNumber,
                 NewPrice = 0,
                 NegotiationStatus = false,
-                Status = TicketStatus.Processing,
+                Status = TicketStatus.Success,
                 IsVisible = true
             };
 

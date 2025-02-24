@@ -4,5 +4,5 @@ namespace TicketHub.Models.DTO;
 
 public class AddToCartDTO
 {
-    [Required] public Guid TicketId { get; set; }
+    [Required] public List<Guid> TicketIds { get; set; } = new List<Guid>();
 }

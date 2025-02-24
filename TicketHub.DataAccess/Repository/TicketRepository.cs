@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using TicketHub.DataAccess.Context;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
@@ -35,7 +36,11 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
             .Include(t => t.Event)
             .Include(ticket => ticket.Category)
             .ToListAsync();
+    }
 
+    public async Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter)
+    {
+        return await _context.Tickets.Where(filter).ToListAsync();
     }
 
     public async Task<int> SaveAsync()

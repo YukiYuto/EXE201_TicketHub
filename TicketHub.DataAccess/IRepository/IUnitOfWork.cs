@@ -8,5 +8,6 @@ public interface IUnitOfWork
     ICartRepository CartRepository { get; }
     ICartItemRepository CartItemRepository { get; }
     IOrderRepository OrderRepository { get; }
+    IPaymentRepository PaymentRepository { get; }
     Task<int> SaveAsync();
 }

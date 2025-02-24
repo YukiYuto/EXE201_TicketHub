@@ -18,7 +18,8 @@ public interface ITicketService
 
     Task<ResponseDto> GetTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user);
-    Task<ResponseDto> CreateTicket(ClaimsPrincipal user, List<CreateTicketDto> createTicketDtos);
+    Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
+    Task<ResponseDto> CreateTicketByOrganiztion(ClaimsPrincipal user, List<CreateTicketDto> createTicketDtos);
     Task<ResponseDto> UpdateTicket(ClaimsPrincipal user, UpdateTicketDto updateTicketDto);
     Task<ResponseDto> DeleteTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> UploadTicketImage(ClaimsPrincipal user, UploadTicketImgDto uploadTicketImgDto);
