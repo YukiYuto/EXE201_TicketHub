@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 using TicketHub.Models.DTO;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.API.Controllers
 {
@@ -16,14 +19,31 @@ namespace TicketHub.API.Controllers
             _cartService = cartService;
         }
 
-        [HttpGet]
-        [Route("GetCart")]
-        public async Task<IActionResult> GetCart()
+        [HttpGet("admin/all-carts")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<ResponseDto>> GetAllCarts(int pageNumber = 1, int pageSize = 10)
         {
-            var responseDto = await _cartService.GetCart(User);
+            var responseDto = await _cartService.GetAllCarts(User, pageNumber, pageSize);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-
+        
+        [HttpGet("admin/cart-by-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<ResponseDto>> GetCartByUserId(string userId)
+        {
+            var responseDto = await _cartService.GetCartByUserId(User, userId);
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
+        
+        [HttpGet]
+        [Authorize(Roles = StaticUserRoles.Member)]
+        [Route("GetCartItem")]
+        public async Task<IActionResult> GetCartItem()
+        {
+            var responseDto = await _cartService.GetAllCartItem(User);
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
+        
         [HttpPost]
         [Route("AddToCart")]
         public async Task<IActionResult> AddToCart([FromBody] AddToCartDTO addToCartDto)
