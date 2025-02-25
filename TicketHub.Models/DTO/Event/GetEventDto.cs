@@ -12,4 +12,5 @@ public class GetEventDto
     [StringLength(100)] public string District { get; set; } = null!;
     [StringLength(500)] public string Address { get; set; } = null!;
     public int Status { get; set; }
+    public string? EventImage { get; set; }
 }

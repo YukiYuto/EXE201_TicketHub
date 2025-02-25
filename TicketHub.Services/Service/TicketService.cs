@@ -1,5 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.Drawing;
+using System.Security.Claims;
 using AutoMapper;
+using Newtonsoft.Json;
+using QRCoder.Core;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
@@ -515,7 +518,66 @@ public class TicketService : ITicketService
         return new ResponseDto()
         {
             Message = "Ticket Rejected successfully",
-            Result = null,
+            Result = null, IsSuccess = true,
+            StatusCode = 200
+        };
+    }
+    
+    public async Task<ResponseDto> GenerateQRCode(Guid ticketId, string serialNumber)
+    {
+        var qrData = new { ticketId, serialNumber };
+        string qrContent = $"tickethubapp.azurewebsites.net/api/Tickets/scan-qr-code?ticketId={Uri.EscapeDataString(ticketId.ToString())}&serialNumber={Uri.EscapeDataString(serialNumber)}";
+
+        using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+        {
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrContent, QRCodeGenerator.ECCLevel.Q);
+            using (QRCode qrCode = new QRCode(qrCodeData))
+            {
+                using (Bitmap qrBitmap = qrCode.GetGraphic(20))
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+
+                        return new ResponseDto()
+                        {
+                            Message = "QR Code generated successfully",
+                            Result = Convert.ToBase64String(ms.ToArray()),
+                            IsSuccess = true,
+                            StatusCode = 200
+                        };
+                    }
+                }
+            }
+        }
+    }
+
+    public async Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, string serialNumber)
+    {
+        // Tìm vé trong database
+        var ticket = await _unitOfWork.TicketRepository.GeTicketById(ticketId);
+
+        if (ticket == null || ticket.SerialNumber != serialNumber)
+        {
+            return new ResponseDto()
+            {
+                Message = "Invalid QR Code or Ticket not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 400
+            }; // Vé không tồn tại hoặc SerialNumber không đúng
+        }
+
+        // Cập nhật trạng thái iVisible từ 1 thành 0
+        ticket.IsVisible = false;
+        _unitOfWork.TicketRepository.Update(ticket);
+
+        // Lưu thay đổi
+        await _unitOfWork.TicketRepository.SaveAsync();
+        return new ResponseDto()
+        {
+            Message = "Ticket validate QR successfully",
+            Result = "https://tickethub-9f8e9.web.app/scan-qr-code",
             IsSuccess = true,
             StatusCode = 200
         };

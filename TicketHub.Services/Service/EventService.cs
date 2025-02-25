@@ -144,7 +144,8 @@ public class EventService : IEventService
             City = eventItem.City,
             District = eventItem.District,
             Address = eventItem.Address,
-            Status = eventItem.Status
+            Status = eventItem.Status,
+            EventImage = eventItem.EventImage
         }).ToList();
 
         return new ResponseDto()
@@ -196,6 +197,7 @@ public class EventService : IEventService
             CreatedTime = DateTime.Now,
             UpdatedTime = null,
             Status = 1,
+            EventImage = createEventDto.EventImage
         };
 
         await _unitOfWork.EventRepository.AddAsync(newEvent);
@@ -233,6 +235,7 @@ public class EventService : IEventService
         eventId.Address = updateEventDto.Address;
         eventId.UpdatedBy = user.Identity.Name;
         eventId.UpdatedTime = DateTime.UtcNow;
+        eventId.EventImage = updateEventDto.EventImage;
 
 
         //save changes
