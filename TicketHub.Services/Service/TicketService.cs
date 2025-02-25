@@ -526,7 +526,7 @@ public class TicketService : ITicketService
     public async Task<ResponseDto> GenerateQRCode(Guid ticketId, string serialNumber)
     {
         var qrData = new { ticketId, serialNumber };
-        string qrContent = JsonConvert.SerializeObject(qrData);
+        string qrContent = $"tickethubapp.azurewebsites.net/api/Tickets/scan-qr-code?ticketId={Uri.EscapeDataString(ticketId.ToString())}&serialNumber={Uri.EscapeDataString(serialNumber)}";
 
         using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
         {
@@ -576,8 +576,8 @@ public class TicketService : ITicketService
         await _unitOfWork.TicketRepository.SaveAsync();
         return new ResponseDto()
         {
-            Message = "Ticket validate QR successfully and no longer visible",
-            Result = null,
+            Message = "Ticket validate QR successfully",
+            Result = "https://tickethub-9f8e9.web.app/scan-qr-code",
             IsSuccess = true,
             StatusCode = 200
         };

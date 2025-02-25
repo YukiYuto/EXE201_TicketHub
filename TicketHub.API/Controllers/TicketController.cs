@@ -126,16 +126,14 @@ namespace TicketHub.API.Controllers
         }
 
         [HttpPost("scan-qr-code")]
-        public async Task<ActionResult<ResponseDto>> ScanQRCode([FromBody] TicketScanRequest request)
+        public async Task<ActionResult<ResponseDto>> ScanQRCode(Guid ticketId, string serialNumber)
         {
-            if (request == null || request.TicketId == Guid.Empty || string.IsNullOrEmpty(request.SerialNumber))
+            if (ticketId == null || ticketId == Guid.Empty || string.IsNullOrEmpty(serialNumber))
                 return BadRequest(new { message = "Dữ liệu không hợp lệ." });
 
-            var responseDto = await _ticketService.ValidateAndUpdateTicket(request.TicketId, request.SerialNumber);
+            var responseDto = await _ticketService.ValidateAndUpdateTicket(ticketId, serialNumber);
 
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-
-        
     }
 }
