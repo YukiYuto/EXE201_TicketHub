@@ -17,6 +17,7 @@ public interface IOrderService
     );
 
     Task<ResponseDto> GetOrder(ClaimsPrincipal user, Guid orderId);
+
     Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto);
     Task<ResponseDto> UpdateOrder(ClaimsPrincipal user, UpdateOrderDto updateOrderDto);
     Task<ResponseDto> DeleteOrder(ClaimsPrincipal user, Guid orderId);

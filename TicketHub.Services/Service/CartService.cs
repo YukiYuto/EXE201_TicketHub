@@ -4,6 +4,7 @@ using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.Services.Service;
 
@@ -18,45 +19,175 @@ public class CartService : ICartService
         _mapper = mapper;
     }
 
-    public async Task<ResponseDto> GetCart(ClaimsPrincipal User)
+    //admin
+    public async Task<ResponseDto> GetAllCarts(ClaimsPrincipal User, int pageNumber = 1, int pageSize = 10)
     {
-        var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
+        // Kiểm tra quyền admin
+        if (!User.IsInRole(StaticUserRoles.Admin))
         {
             return new ResponseDto()
             {
-                Message = "User was not found",
+                Message = "You are not authorized to view all carts",
                 IsSuccess = false,
-                StatusCode = 404,
-                Result = null
+                StatusCode = 403
             };
         }
 
-        var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId);
-        if (cart == null)
+        // Lấy tất cả `Cart`
+        var allCarts = await _unitOfWork.CartRepository.GetAllAsync(includeProperties: "CartItems");
+
+        if (!allCarts.Any())
         {
-            cart = new Cart()
+            return new ResponseDto()
             {
-                CartId = Guid.NewGuid(),
-                UserId = userId,
-                TotalAmount = 0
+                Message = "No carts found",
+                IsSuccess = false,
+                StatusCode = 404
             };
-            await _unitOfWork.CartRepository.AddAsync(cart);
-            await _unitOfWork.SaveAsync();
         }
 
-        var cartItems =
-            await _unitOfWork.CartItemRepository.GetAllAsync(x => x.CartId == cart.CartId, includeProperties: "Ticket");
-        var cartDto = _mapper.Map<CartDto>(cart);
-        cartDto.CartItemsDtos = _mapper.Map<List<CartItemDto>>(cartItems);
+        // Tính tổng số trang (TotalPages)
+        int totalCarts = allCarts.Count();
+        int totalPages = (int)Math.Ceiling((double)totalCarts / pageSize);
+
+        // Lấy dữ liệu theo trang (Pagination)
+        var paginatedCarts = allCarts
+            .OrderByDescending(c => c.CartId) // Sắp xếp theo Cart mới nhất
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        // Chuyển đổi dữ liệu
+        var cartDtos = paginatedCarts.Select(c => new
+        {
+            CartId = c.CartId,
+            UserId = c.UserId, // Chủ sở hữu giỏ hàng
+            TotalAmount = c.TotalAmount, // Tổng tiền giỏ hàng
+            TotalTickets = c.CartItems.Count // Số lượng vé trong giỏ hàng
+        }).ToList();
 
         return new ResponseDto()
         {
-            Message = "Get Cart successfully",
+            Message = "Get all carts successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = new
+            {
+                TotalCarts = totalCarts, // Tổng số Cart
+                TotalPages = totalPages, // Tổng số trang
+                PageSize = pageSize, // Số Cart mỗi trang
+                CurrentPage = pageNumber, // Trang hiện tại
+                Carts = cartDtos // Danh sách Cart của trang hiện tại
+            }
+        };
+    }
+
+    //admin
+    public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
+    {
+        // Kiểm tra quyền admin
+        var isAdmin = User.IsInRole(StaticUserRoles.Admin);
+        if (!isAdmin)
+        {
+            return new ResponseDto()
+            {
+                Message = "You are not authorized to view user carts",
+                IsSuccess = false,
+                StatusCode = 403
+            };
+        }
+
+        // Lấy giỏ hàng của user
+        var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId, includeProperties: "CartItems.Ticket");
+        if (cart == null)
+        {
+            return new ResponseDto()
+            {
+                Message = "Cart not found for this user",
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+        
+        // Chuyển đổi sang DTO
+        var cartDto = new CartDto
+        {
+            CartId = cart.CartId,
+            UserId = cart.UserId,
+            TotalAmount = cart.TotalAmount,
+            CartItemsDtos = cart.CartItems.Select(ci => new CartItemDto
+            {
+                CartItemId = ci.CartItemId,
+                TicketId = ci.Ticket.TicketId,
+                TicketPrice = ci.Ticket.TicketPrice
+            }).ToList()
+        };
+
+        return new ResponseDto()
+        {
+            Message = "Get cart successfully",
             IsSuccess = true,
             StatusCode = 200,
             Result = cartDto
         };
+    }
+
+    public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User)
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // Lấy giỏ hàng của User
+            var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId,
+                includeProperties: "CartItems.Ticket");
+
+            if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
+            {
+                return new ResponseDto
+                {
+                    Message = "Cart is empty",
+                    IsSuccess = true,
+                    StatusCode = 200,
+                    Result = new List<object>() // Trả về danh sách rỗng nếu không có cart items
+                };
+            }
+
+            // Chuyển đổi danh sách CartItems thành DTO để trả về
+            var cartItemsDto = cart.CartItems.Select(ci => new
+            {
+                CartItemId = ci.CartItemId,
+                TicketId = ci.Ticket.TicketId,
+                TicketName = ci.Ticket.TicketName,
+                TicketPrice = ci.Ticket.TicketPrice
+            }).ToList();
+
+            return new ResponseDto
+            {
+                Message = "Retrieved cart items successfully",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = cartItemsDto
+            };
+        }
+        catch (Exception e)
+        {
+            return new ResponseDto
+            {
+                Message = "An error occurred: " + e.Message,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 
     public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
@@ -136,7 +267,9 @@ public class CartService : ICartService
             var newCartItem = new CartItem()
             {
                 CartId = cart.CartId,
-                TicketId = ticket.TicketId
+                CartItemId = Guid.NewGuid(),
+                TicketId = ticket.TicketId,
+                Status = "1"
             };
 
             await _unitOfWork.CartItemRepository.AddAsync(newCartItem);
@@ -150,9 +283,12 @@ public class CartService : ICartService
                 TotalAmount = cart.TotalAmount,
                 CartItemsDtos = cart.CartItems?.Select(item => new CartItemDto
                 {
+                    CartItemId = item.CartItemId,
+                    CartId = cart.CartId,
                     TicketId = item.TicketId,
-                    TicketPrice = ticket.TicketPrice
-                }).ToList()
+                    TicketPrice = ticket.TicketPrice,
+                    Status = item.Status
+                }).ToList()!
             };
 
             return new ResponseDto
@@ -189,29 +325,21 @@ public class CartService : ICartService
             };
         }
 
-        var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId);
-        if (cart == null)
+        var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId,
+            includeProperties: "CartItems.Ticket");
+        if (cart == null || !cart.CartItems.Any())
         {
-            cart = new Cart()
-            {
-                CartId = Guid.NewGuid(),
-                UserId = userId,
-                TotalAmount = 0
-            };
-            await _unitOfWork.CartRepository.AddAsync(cart);
-            await _unitOfWork.SaveAsync();
-
             return new ResponseDto()
             {
-                Message = "Cart was not found",
+                Message = "Cart is empty",
                 IsSuccess = false,
                 StatusCode = 404,
                 Result = null
             };
         }
 
-        var cartItems = await _unitOfWork.CartItemRepository.GetCartItemWithTicketAsync(cart.CartId, TicketId);
-        if (cartItems == null)
+        var cartItem = cart.CartItems.FirstOrDefault(x => x.TicketId == TicketId);
+        if (cartItem == null)
         {
             return new ResponseDto()
             {
@@ -222,10 +350,8 @@ public class CartService : ICartService
             };
         }
 
-        cart.TotalAmount -= cartItems.Ticket.TicketPrice;
-        _unitOfWork.CartRepository.Update(cart);
-
-        _unitOfWork.CartItemRepository.Remove(cartItems);
+        // Xóa vé khỏi giỏ hàng
+        _unitOfWork.CartItemRepository.Remove(cartItem);
         await _unitOfWork.SaveAsync();
 
         return new ResponseDto()
@@ -235,5 +361,109 @@ public class CartService : ICartService
             StatusCode = 200,
             Result = null
         };
+    }
+
+    public async Task<ResponseDto> Checkout(ClaimsPrincipal User, CheckoutDto checkoutDto)
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // Lấy giỏ hàng của user dựa vào UserId
+            var cartList = await _unitOfWork.CartRepository.GetAllAsync(x => x.UserId == userId);
+            var cart = cartList.FirstOrDefault(); // Giả sử mỗi user chỉ có một Cart
+
+            if (cart == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "Cart not found.",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // Lấy toàn bộ CartItem trong giỏ hàng (dựa vào CartId)
+            var allCartItems = await _unitOfWork.CartItemRepository
+                .GetAllAsync(x => x.CartId == cart.CartId, includeProperties: "Ticket");
+
+            // Tính tổng tiền của giỏ hàng trước khi checkout
+            double totalCartPriceBefore = allCartItems.Sum(ci => ci.Ticket.TicketPrice);
+
+            // Lọc danh sách CartItem cần cập nhật trạng thái dựa trên CartItemId gửi lên
+            var cartItemsToUpdate = allCartItems
+                .Where(ci => checkoutDto.CartItemIds.Contains(ci.CartItemId))
+                .ToList();
+
+            if (!cartItemsToUpdate.Any())
+            {
+                return new ResponseDto
+                {
+                    Message = "No valid cart items selected for checkout.",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            // Lấy danh sách CartItem đã được cập nhật, bao gồm thông tin cần thiết
+            var updatedCartItems = cartItemsToUpdate.Select(ci => new
+            {
+                CartItemId = ci.CartItemId,
+                TicketId = ci.Ticket.TicketId,
+                TicketName = ci.Ticket.TicketName,
+                Price = ci.Ticket.TicketPrice
+            }).ToList();
+
+            // Tính tổng tiền của các CartItem được ẩn (Status = 0)
+            double totalRemovedPrice = updatedCartItems.Sum(ci => ci.Price);
+
+            // Tính tổng tiền giỏ hàng sau khi checkout
+            double totalCartPriceAfter = totalCartPriceBefore - totalRemovedPrice;
+
+            // Cập nhật lại totalPrice trong Cart
+            cart.TotalAmount = totalCartPriceAfter;
+            _unitOfWork.CartRepository.Update(cart);
+
+            // Đổi `Status` của các CartItem thành `0` (ẩn chúng)
+            foreach (var cartItem in cartItemsToUpdate)
+            {
+                cartItem.Status = "0";
+                _unitOfWork.CartItemRepository.Update(cartItem);
+            }
+
+            await _unitOfWork.SaveAsync();
+
+            return new ResponseDto
+            {
+                Message = "Checkout successful. Cart items updated.",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = new
+                {
+                    TotalPriceBefore = totalCartPriceBefore,
+                    TotalPriceCartItemRemove = totalRemovedPrice,
+                    TotalPriceAfter = totalCartPriceAfter,
+                    UpdatedCartItems = updatedCartItems
+                }
+            };
+        }
+        catch (Exception e)
+        {
+            return new ResponseDto
+            {
+                Message = "An error occurred during checkout: " + e.Message,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 }

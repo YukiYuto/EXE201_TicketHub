@@ -4,7 +4,6 @@ namespace TicketHub.Models.DTO.Order;
 
 public class CreateOrderDto
 {
-    public Guid OrderId { get; set; }
-    [StringLength(450)] public string UserId { get; set; } = null!;
-    public double TotalPrice { get; set; }
+    public List<Guid> CheckedOutCartItemIds { get; set; } = new();
+    public double CheckoutTotalPrice { get; set; }
 }

@@ -47,6 +47,22 @@ namespace TicketHub.DataAccess.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s",
+                            ConcurrencyStamp = "STAFF",
+                            Name = "STAFF",
+                            NormalizedName = "STAFF"
+                        },
+                        new
+                        {
+                            Id = "8fa7c7bb-daa5-a660-bf02-82301a5eb32a",
+                            ConcurrencyStamp = "ADMIN",
+                            Name = "ADMIN",
+                            NormalizedName = "ADMIN"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -134,6 +150,23 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "TicketHub-Admin",
+                            RoleId = "8fa7c7bb-daa5-a660-bf02-82301a5eb32a"
+                        },
+                        new
+                        {
+                            UserId = "StaffId",
+                            RoleId = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s"
+                        },
+                        new
+                        {
+                            UserId = "StaffId2",
+                            RoleId = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -253,6 +286,77 @@ namespace TicketHub.DataAccess.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "TicketHub-Admin",
+                            AccessFailedCount = 0,
+                            Address = "123 Admin St",
+                            AvatarUrl = "https://example.com/avatar.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CCCD = "123456789123",
+                            ConcurrencyStamp = "212cfbb0-d527-41fa-9d17-9dbfe13602f1",
+                            Country = "Country",
+                            Email = "admin@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Admin User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "ADMIN@GMAIL.COM",
+                            NormalizedUserName = "ADMIN@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKTqnMAzmvi20d00k3ucE1HxlPQZm+pYdWEqk2jJMYoUDEdy7z1N/0fUDkbEi2iNHg==",
+                            PhoneNumber = "1234567890",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "cee85260-ab74-4137-b694-f26efe4df392",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@gmail.com"
+                        },
+                        new
+                        {
+                            Id = "StaffId2",
+                            AccessFailedCount = 0,
+                            Address = "456 Staff St",
+                            AvatarUrl = "https://example.com/avatarStaff2.png",
+                            BirthDate = new DateTime(1991, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CCCD = "123456789124",
+                            ConcurrencyStamp = "1b8dd84a-835b-48b9-acb2-a92e6074b0d9",
+                            Country = "Country",
+                            Email = "staff2@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Staff_2 User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "STAFF2@GMAIL.COM",
+                            NormalizedUserName = "STAFF2@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHcNgygIxZj+dOnqI1i9uzb2enz/VMido8BwzFmEWgngG2GqBQ2C7mULRv5k7DUxdQ==",
+                            PhoneNumber = "0987654321",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "07ad8086-375a-4e81-b308-717dd4792608",
+                            TwoFactorEnabled = false,
+                            UserName = "staff2@gmail.com"
+                        },
+                        new
+                        {
+                            Id = "StaffId",
+                            AccessFailedCount = 0,
+                            Address = "123 Staff St",
+                            AvatarUrl = "https://example.com/avatarStaff.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CCCD = "123456789126",
+                            ConcurrencyStamp = "ac1dce37-a5a5-40c6-9f26-efbf999ef0ac",
+                            Country = "Country",
+                            Email = "staff1@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Staff_1 User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "STAFF1@GMAIL.COM",
+                            NormalizedUserName = "STAFF1@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAENrrTeUq18VDskQHw6fJeIKnPSIbesJr11lXwmal3jGj6kYbLdU0WtJ7sEOLseNVRw==",
+                            PhoneNumber = "0123456789",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "c4ca7dbd-dd09-4b68-a6a5-29731f3b12c4",
+                            TwoFactorEnabled = false,
+                            UserName = "staff1@gmail.com"
+                        });
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Cart", b =>
@@ -277,15 +381,30 @@ namespace TicketHub.DataAccess.Migrations
 
             modelBuilder.Entity("TicketHub.Models.Domain.CartItem", b =>
                 {
+                    b.Property<Guid>("CartItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("CartId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("CartId", "TicketId");
+                    b.Property<Guid?>("TicketId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CartItemId");
+
+                    b.HasIndex("CartId");
 
                     b.HasIndex("TicketId");
+
+                    b.HasIndex("TicketId1");
 
                     b.ToTable("CartItems");
                 });
@@ -326,6 +445,40 @@ namespace TicketHub.DataAccess.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.Property<Guid>("ChatRoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NameRoom")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReceiveMessageUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SendMessageUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ChatRoomId");
+
+                    b.HasIndex("ReceiveMessageUserId");
+
+                    b.HasIndex("SendMessageUserId");
+
+                    b.ToTable("ChatRooms");
+                });
+
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>
                 {
                     b.Property<Guid>("EventId")
@@ -361,6 +514,10 @@ namespace TicketHub.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("EventImage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("EventName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -378,6 +535,36 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Message", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MessageContent")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("ReceiveMessageUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SendMessageUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ChatRoomId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.OrderTicket", b =>
@@ -401,6 +588,9 @@ namespace TicketHub.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<long>("OrderNumber")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
 
@@ -411,9 +601,55 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasKey("OrderId");
 
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
+                {
+                    b.Property<Guid>("PaymentTransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CancelUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("ExpiredAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("OrderNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReturnUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Signature")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PaymentTransactionId");
+
+                    b.HasIndex("OrderNumber");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
@@ -576,14 +812,18 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasOne("TicketHub.Models.Domain.Cart", "Cart")
                         .WithMany("CartItems")
                         .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("TicketHub.Models.Domain.Ticket", "Ticket")
-                        .WithMany("CartItems")
+                        .WithMany()
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("TicketHub.Models.Domain.Ticket", null)
+                        .WithMany("CartItems")
+                        .HasForeignKey("TicketId1");
 
                     b.Navigation("Cart");
 
@@ -597,6 +837,34 @@ namespace TicketHub.DataAccess.Migrations
                         .HasForeignKey("ParentCategoryId");
 
                     b.Navigation("ParentCategory");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.HasOne("TicketHub.Models.Domain.ApplicationUser", "ReceiveMessageUser")
+                        .WithMany()
+                        .HasForeignKey("ReceiveMessageUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TicketHub.Models.Domain.ApplicationUser", "SendMessageUser")
+                        .WithMany()
+                        .HasForeignKey("SendMessageUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReceiveMessageUser");
+
+                    b.Navigation("SendMessageUser");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Message", b =>
+                {
+                    b.HasOne("TicketHub.Models.Domain.ChatRoom", "ChatRoom")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatRoomId");
+
+                    b.Navigation("ChatRoom");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.OrderTicket", b =>
@@ -627,6 +895,17 @@ namespace TicketHub.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
+                {
+                    b.HasOne("TicketHub.Models.Domain.Orders", "Orders")
+                        .WithMany()
+                        .HasForeignKey("OrderNumber")
+                        .HasPrincipalKey("OrderNumber")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
@@ -686,6 +965,11 @@ namespace TicketHub.DataAccess.Migrations
             modelBuilder.Entity("TicketHub.Models.Domain.Cart", b =>
                 {
                     b.Navigation("CartItems");
+                });
+
+            modelBuilder.Entity("TicketHub.Models.Domain.ChatRoom", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>

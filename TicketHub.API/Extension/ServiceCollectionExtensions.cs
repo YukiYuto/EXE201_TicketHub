@@ -21,6 +21,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRedisService, RedisService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ICartService, CartService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<ITicketService, TicketService>();
+        services.AddScoped<IEventService, EventService>();
+        services.AddScoped<IFirebaseService, FirebaseService>();
+        services.AddScoped<IPaymentService, PaymentService>();
         return services;
     }
 }

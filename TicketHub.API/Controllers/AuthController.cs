@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO.Authentication;
@@ -46,10 +47,11 @@ public class AuthController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
     
-    [HttpPost("user")]
-    public async Task<IActionResult> FetchUserByToken(string token)
+    [HttpGet("user")]
+    [Authorize]
+    public async Task<IActionResult> FetchUserByToken()
     {
-        var responseDto = await _authService.FetchUserByToken(token);
+        var responseDto = await _authService.FetchUserByToken(User);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
     
