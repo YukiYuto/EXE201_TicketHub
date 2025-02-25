@@ -22,11 +22,5 @@ public class CartItemRepository : Repository<CartItem>, ICartItemRepository
     {
         _context.CartItems.UpdateRange(cartItems);
     }
-
-    public async Task<CartItem> GetCartItemWithTicketAsync(Guid cartId, Guid ticketId)
-    {
-        return await _context.CartItems
-            .Include(ci => ci.Ticket)
-            .FirstOrDefaultAsync(ci => ci.CartId == cartId && ci.TicketId == ticketId);
-    }
+    
 }

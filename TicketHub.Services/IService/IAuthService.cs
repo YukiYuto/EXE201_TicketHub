@@ -14,7 +14,7 @@ public interface IAuthService
     Task<ResponseDto> UpdateUserProfile(ClaimsPrincipal userPrincipal,UpdateUserProfileDto updateUserProfileDto);
     Task<ResponseDto> GetUserById(Guid userId);
     Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto);
-    Task<ResponseDto> FetchUserByToken(string token);
+    Task<ResponseDto> FetchUserByToken(ClaimsPrincipal user);
     Task<ResponseDto> SendVerifyEmail(EmailDto emailDto);
     Task<ResponseDto> VerifyEmail(VerifyEmailDto verifyEmailDto);
     Task<ResponseDto> ChangePassword(ClaimsPrincipal userPrincipal, ChangePasswordDto changePasswordDto);

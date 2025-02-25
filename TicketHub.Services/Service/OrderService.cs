@@ -133,14 +133,12 @@ public class OrderService : IOrderService
             StatusCode = 201
         };
     }
-    
-    
-    //Create Order phải check xem vé có còn không, nếu không còn thì không thể tạo đơn hàng 
-    public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user)
+
+
+    public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto)
     {
         try
         {
-            // Lấy userId từ token
             var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
@@ -152,46 +150,42 @@ public class OrderService : IOrderService
                 };
             }
 
-            // Lấy giỏ hàng của user
-            var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId,
-                includeProperties: "CartItems.Ticket");
-            if (cart == null || !cart.CartItems.Any())
+            // Lấy danh sách CartItem đã checkout từ database
+            var checkedOutCartItems = await _unitOfWork.CartItemRepository
+                .GetAllAsync(x => createOrderDto.CheckedOutCartItemIds.Contains(x.CartItemId),
+                    includeProperties: "Ticket");
+
+            if (checkedOutCartItems == null || !checkedOutCartItems.Any())
             {
                 return new ResponseDto
                 {
-                    Message = "Cart is empty, cannot create order",
+                    Message = "No cart items found for the provided IDs",
                     IsSuccess = false,
                     StatusCode = 400
                 };
             }
 
-            // Tạo đơn hàng từ giỏ hàng
+            // Tạo đơn hàng từ danh sách CartItem đã checkout
             var newOrder = new Orders
             {
                 OrderId = Guid.NewGuid(),
                 UserId = userId,
-                TotalPrice = cart.TotalAmount, 
-                OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync(),
+                TotalPrice = createOrderDto.CheckoutTotalPrice,
+                OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync()
             };
 
-            // Sau khi newOrder đã được khai báo, mới sử dụng nó trong danh sách OrderTickets
-            newOrder.OrderTickets = cart.CartItems.Select(cartItem => new OrderTicket
+            // Tạo danh sách OrderDetail từ các vé đã checkout
+            newOrder.OrderTickets = checkedOutCartItems.Select(cartItem => new OrderTicket
             {
-                OrderId = newOrder.OrderId, // Lúc này newOrder đã tồn tại, không còn lỗi
+                OrderId = newOrder.OrderId,
                 TicketId = cartItem.TicketId
             }).ToList();
 
-            // Thêm đơn hàng vào DB
+            // Lưu order vào database
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             await _unitOfWork.SaveAsync();
 
-            // Xóa giỏ hàng sau khi tạo đơn hàng
-            _unitOfWork.CartItemRepository.RemoveRange(cart.CartItems);
-            cart.TotalAmount = 0;
-            _unitOfWork.CartRepository.Update(cart);
-            await _unitOfWork.SaveAsync();
-
-            // Chuyển đổi order sang DTO
+            // Chuyển đổi order sang DTO để trả về response
             var orderDto = _mapper.Map<GetOrderDto>(newOrder);
 
             return new ResponseDto

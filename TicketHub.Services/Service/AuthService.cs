@@ -402,69 +402,91 @@ public class AuthService : IAuthService
         throw new NotImplementedException();
     }
 
-    public async Task<ResponseDto> FetchUserByToken(string token)
+    public async Task<ResponseDto> FetchUserByToken(ClaimsPrincipal user)
     {
-        // Sử dụng GetPrincipalFromToken để lấy ClaimsPrincipal từ token
-        var principal = await _tokenService.GetPrincipalFromToken(token);
+        try
+        {
+            // Lấy userId từ ClaimsPrincipal
+            var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new ResponseDto()
+                {
+                    Message = "Invalid user",
+                    StatusCode = 401,
+                    IsSuccess = false,
+                    Result = null
+                };
+            }
 
-        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var user = await _userManager.FindByIdAsync(userId!);
+            // Tìm user trong database
+            var userEntity = await _userManager.FindByIdAsync(userId);
+            if (userEntity == null)
+            {
+                return new ResponseDto()
+                {
+                    Message = "User not found",
+                    StatusCode = 404,
+                    IsSuccess = false,
+                    Result = null
+                };
+            }
 
-        if (user == null)
+            // Lấy danh sách vai trò của user
+            var roles = await _userManager.GetRolesAsync(userEntity);
+
+            GetUserDto userDto;
+
+            if (roles.Contains(StaticUserRoles.Organization))
+            {
+                // Tạo DTO cho Organization
+                userDto = new GetUserDto
+                {
+                    Id = userEntity.Id,
+                    OrganizationName = user.Claims.FirstOrDefault(x => x.Type == "OrganizationName")?.Value,
+                    Email = userEntity.Email!,
+                    PhoneNumber = userEntity.PhoneNumber!,
+                    Address = user.Claims.FirstOrDefault(x => x.Type == "Address")?.Value,
+                    ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
+                    TaxId = userEntity.TaxId!,
+                    Roles = roles.ToList()
+                };
+            }
+            else
+            {
+                // Tạo DTO cho User thông thường
+                userDto = new GetUserDto
+                {
+                    Id = userEntity.Id,
+                    FullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value,
+                    Email = userEntity.Email!,
+                    PhoneNumber = userEntity.PhoneNumber!,
+                    Address = user.Claims.FirstOrDefault(x => x.Type == "Address")?.Value,
+                    ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
+                    UserName = userEntity.UserName!,
+                    CCCD = userEntity.CCCD!,
+                    Roles = roles.ToList()
+                };
+            }
+
+            return new ResponseDto()
+            {
+                Message = "Get user info successfully",
+                StatusCode = 200,
+                IsSuccess = true,
+                Result = userDto
+            };
+        }
+        catch (Exception e)
         {
             return new ResponseDto()
             {
-                Message = "Invalid user",
-                StatusCode = 400,
+                Message = "An error occurred: " + e.Message,
+                StatusCode = 500,
                 IsSuccess = false,
                 Result = null
             };
         }
-
-        // Lấy role từ UserManager
-        var roles = await _userManager.GetRolesAsync(user);
-
-        GetUserDto userDto;
-
-        if (roles.Contains(StaticUserRoles.Organization))
-        {
-            // Tạo GetUserDto từ claims
-            userDto = new GetUserDto
-            {
-                Id = user.Id,
-                OrganizationName = principal.FindFirst("OrganizationName")!.Value,
-                Email = user.Email!,
-                PhoneNumber = user.PhoneNumber!,
-                Address = principal.FindFirst("Address")?.Value,
-                ImageUrl = principal.FindFirst("AvatarUrl")?.Value,
-                TaxId = user.TaxId!,
-                Roles = roles.ToList()
-            };
-        }
-        else
-        {
-            // Tạo GetUserDto từ claims
-            userDto = new GetUserDto
-            {
-                Id = user.Id,
-                FullName = principal.FindFirst("FullName")!.Value,
-                Email = user.Email!,
-                PhoneNumber = user.PhoneNumber!,
-                Address = principal.FindFirst("Address")?.Value,
-                ImageUrl = principal.FindFirst("AvatarUrl")?.Value,
-                UserName = user.UserName!,
-                CCCD = user.CCCD!,
-                Roles = roles.ToList()
-            };
-        }
-
-        return new ResponseDto()
-        {
-            Message = "Get info successfully",
-            StatusCode = 200,
-            IsSuccess = true,
-            Result = userDto
-        };
     }
 
     public async Task<ResponseDto> SendVerifyEmail(EmailDto emailDto)
@@ -690,6 +712,7 @@ public class AuthService : IAuthService
                 Result = null
             };
         }
+
         return new ResponseDto
         {
             IsSuccess = true,
