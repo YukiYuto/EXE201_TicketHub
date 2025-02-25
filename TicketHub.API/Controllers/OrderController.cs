@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Order;
@@ -43,9 +44,9 @@ namespace TicketHub.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<ResponseDto>> CreateOrder()
+        public async Task<ActionResult<ResponseDto>> CreateOrder([FromBody] CreateOrderDto createOrderDto)
         {
-            var responseDto = await _orderService.CreateOrder(User);
+            var responseDto = await _orderService.CreateOrder(User, createOrderDto);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
 

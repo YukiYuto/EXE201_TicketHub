@@ -10,12 +10,12 @@ namespace TicketHub.API.Controllers
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
-    
+
         public CartController(ICartService cartService)
         {
             _cartService = cartService;
         }
-    
+
         [HttpGet]
         [Route("GetCart")]
         public async Task<IActionResult> GetCart()
@@ -23,7 +23,7 @@ namespace TicketHub.API.Controllers
             var responseDto = await _cartService.GetCart(User);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpPost]
         [Route("AddToCart")]
         public async Task<IActionResult> AddToCart([FromBody] AddToCartDTO addToCartDto)
@@ -35,7 +35,7 @@ namespace TicketHub.API.Controllers
             );
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-    
+
         [HttpDelete]
         [Route("RemoveFromCart")]
         public async Task<IActionResult> RemoveFromCart([FromQuery] Guid ticketId)
@@ -45,6 +45,14 @@ namespace TicketHub.API.Controllers
                 User,
                 ticketId
             );
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
+
+        [HttpPost]
+        [Route("Checkout")]
+        public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
+        {
+            var responseDto = await _cartService.Checkout(User, checkoutDto);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
     }

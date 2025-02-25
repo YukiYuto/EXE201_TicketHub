@@ -31,7 +31,25 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         // Seed data
         ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
+        
+        
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Cart)
+            .WithMany(c => c.CartItems)
+            .HasForeignKey(ci => ci.CartId)
+            .OnDelete(DeleteBehavior.NoAction); // Ngăn chặn xóa cascade gây lỗi
 
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Ticket)
+            .WithMany()  // Nếu không có navigation property ngược, để trống
+            .HasForeignKey(ci => ci.TicketId)
+            .OnDelete(DeleteBehavior.NoAction); // Ngăn chặn xóa cascade gây lỗi
+        /*modelBuilder.Entity<CartItem>()
+            .HasOne(c => c.)
+            .WithOne(t => t.Seller)
+            .HasForeignKey(t => t.SellerId)
+            .OnDelete(DeleteBehavior.NoAction);*/
+        /*
         modelBuilder.Entity<CartItem>()
             .HasKey(ci => new { ci.CartId, ci.TicketId });
 
@@ -46,6 +64,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(t => t.CartItems)
             .HasForeignKey(ci => ci.TicketId)
             .OnDelete(DeleteBehavior.NoAction);
+            */
 
 
         modelBuilder.Entity<OrderTicket>()
