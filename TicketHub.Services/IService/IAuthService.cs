@@ -12,7 +12,6 @@ public interface IAuthService
     Task<ResponseDto> SignIn(SignInDto signDto);
     /*Task<ResponseDto> SignInByGoogle(SignInByGoogleDto signInByGoogleDto);*/
     Task<ResponseDto> UpdateUserProfile(ClaimsPrincipal userPrincipal,UpdateUserProfileDto updateUserProfileDto);
-    Task<ResponseDto> GetUserById(Guid userId);
     Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto);
     Task<ResponseDto> FetchUserByToken(ClaimsPrincipal user);
     Task<ResponseDto> SendVerifyEmail(EmailDto emailDto);
@@ -23,5 +22,6 @@ public interface IAuthService
     /*Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal user);
     Task<MemoryStream> GetUserAvatar(ClaimsPrincipal user);
     Task<ResponseDto> LockUser(string id);
+    Task<ResponseDto> GetUserById(Guid userId);
     Task<ResponseDto> UnlockUser(string id);*/
 }

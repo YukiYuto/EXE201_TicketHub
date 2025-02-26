@@ -55,6 +55,13 @@ public class AuthController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
     
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
+    {
+        var responseDto = await _authService.RefreshToken(refreshTokenDto);
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+    
     [HttpPost("email/verification/send")]
     public async Task<IActionResult> SendVerifyEmail([FromBody] EmailDto emailDto)
     {

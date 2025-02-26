@@ -20,6 +20,7 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly JwtSecurityTokenHandler _tokenHandler;
     private readonly IEmailService _emailService;
+    private readonly IRedisService _redisService;
 
     public AuthService
     (
@@ -27,7 +28,8 @@ public class AuthService : IAuthService
         RoleManager<IdentityRole> roleManager,
         ITokenService tokenService,
         IUnitOfWork unitOfWork,
-        IEmailService emailService
+        IEmailService emailService,
+        IRedisService redisService
     )
     {
         _userManager = userManager;
@@ -37,6 +39,7 @@ public class AuthService : IAuthService
         _unitOfWork = unitOfWork;
         /*_mapperService = mapperService;*/
         _emailService = emailService;
+        _redisService = redisService;
     }
 
     public async Task<ResponseDto> SignUpCustomer(SignUpCustomerDto signUpCustomerDto)
@@ -392,14 +395,81 @@ public class AuthService : IAuthService
         };
     }
 
-    public Task<ResponseDto> GetUserById(Guid userId)
+    public async Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto)
     {
-        throw new NotImplementedException();
-    }
+        try
+        {
+            if (refreshTokenDto == null || string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
+            {
+                return new ResponseDto
+                {
+                    Message = "Invalid refresh token",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
 
-    public Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto)
-    {
-        throw new NotImplementedException();
+            // Giải mã token để lấy userId
+            var principal = await _tokenService.GetPrincipalFromToken(refreshTokenDto.RefreshToken);
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new ResponseDto
+                {
+                    Message = "Invalid token",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            // Kiểm tra refresh token có tồn tại trên Redis không
+            string redisKey = $"userId:{userId}:refreshToken";
+            var storedRefreshToken = await _redisService.RetrieveString(redisKey);
+
+            if (string.IsNullOrEmpty(storedRefreshToken) || storedRefreshToken != refreshTokenDto.RefreshToken)
+            {
+                return new ResponseDto
+                {
+                    Message = "Refresh token expired or invalid. Please log in again.",
+                    IsSuccess = false,
+                    StatusCode = 401
+                };
+            }
+
+            // Lấy thông tin user
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // Cấp mới access token
+            var newAccessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+
+            return new ResponseDto
+            {
+                Message = "Access token refreshed successfully",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = newAccessToken
+                
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ResponseDto
+            {
+                Message = "An error occurred: " + ex.Message,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 
     public async Task<ResponseDto> FetchUserByToken(ClaimsPrincipal user)

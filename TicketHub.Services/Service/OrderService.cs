@@ -171,7 +171,8 @@ public class OrderService : IOrderService
                 OrderId = Guid.NewGuid(),
                 UserId = userId,
                 TotalPrice = createOrderDto.CheckoutTotalPrice,
-                OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync()
+                OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync(),
+                Status = "1"
             };
 
             // Tạo danh sách OrderDetail từ các vé đã checkout
@@ -250,8 +251,10 @@ public class OrderService : IOrderService
                 StatusCode = 404
             };
         }
+        
+        
 
-        _unitOfWork.OrderRepository.Remove(order);
+        await _unitOfWork.OrderRepository.AddAsync(order);
         var delete = await _unitOfWork.SaveAsync();
 
         return new ResponseDto

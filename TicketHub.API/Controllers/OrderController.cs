@@ -49,18 +49,7 @@ namespace TicketHub.API.Controllers
             var responseDto = await _orderService.CreateOrder(User, createOrderDto);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
-
-        [HttpPut]
-        [Authorize]
-        public async Task<ActionResult<ResponseDto>> UpdateOrder
-        (
-            [FromBody] UpdateOrderDto updateOrderDto
-        )
-        {
-            var responseDto = await _orderService.UpdateOrder(User, updateOrderDto);
-            return StatusCode(responseDto.StatusCode, responseDto);
-        }
-
+        
         [HttpDelete("{orderId}")]
         [Authorize]
         public async Task<ActionResult<ResponseDto>> DeleteOrder

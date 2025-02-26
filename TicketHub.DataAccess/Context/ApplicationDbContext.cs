@@ -23,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<Payment> Payments { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
