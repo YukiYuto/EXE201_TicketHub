@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.Domain;
+using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Authentication;
 using TicketHub.Models.DTO.Email;
+using TicketHub.Models.DTO.Image;
 using TicketHub.Services.IService;
 
 namespace TicketHub.API.Controllers;
@@ -39,12 +41,27 @@ public class AuthController : ControllerBase
         var response = await _authService.SignIn(signInDto);
         return StatusCode(response.StatusCode, response);
     }
-    
+
+    [HttpPost("sign-in-by-google")]
+    public async Task<IActionResult> SignInByGoogle([FromBody] SignInByGoogleDto signInByGoogleDto)
+    {
+        var response = await _authService.SignInByGoogle(signInByGoogleDto);
+        return StatusCode(response.StatusCode, response);
+    }
+
     [HttpPost("update-user-profile")]
     public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDto updateUserProfileDto)
     {
         var response = await _authService.UpdateUserProfile(User, updateUserProfileDto);
         return StatusCode(response.StatusCode, response);
+    }
+    
+    [HttpPost]
+    [Route("user/avatar")]
+    public async Task<IActionResult> UploadUserAvatar(AvatarUploadDto avatarUploadDto)
+    {
+        var responseDto = await _authService.UploadUserAvatar(avatarUploadDto.File, User);
+        return StatusCode(responseDto.StatusCode, responseDto);
     }
     
     [HttpGet("user")]
@@ -54,42 +71,42 @@ public class AuthController : ControllerBase
         var responseDto = await _authService.FetchUserByToken(User);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
     {
         var responseDto = await _authService.RefreshToken(refreshTokenDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("email/verification/send")]
     public async Task<IActionResult> SendVerifyEmail([FromBody] EmailDto emailDto)
     {
         var responseDto = await _authService.SendVerifyEmail(emailDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("email/verification/verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto verifyEmailDto)
     {
         var responseDto = await _authService.VerifyEmail(verifyEmailDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("password/change")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
         var responseDto = await _authService.ChangePassword(User, changePasswordDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("password/forgot")]
     public async Task<IActionResult> ForgotPassword([FromBody] EmailDto emailDto)
     {
         var responseDto = await _authService.ForgotPassword(emailDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("password/reset")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
     {

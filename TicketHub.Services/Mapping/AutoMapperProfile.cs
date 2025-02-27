@@ -13,6 +13,7 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<Orders, GetOrderDto>().ReverseMap();
         CreateMap<Event, GetEventDto>();
+        CreateMap<Ticket, GetTicketDto>().ReverseMap();
     }
 
 }

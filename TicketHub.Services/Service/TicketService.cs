@@ -203,7 +203,7 @@ public class TicketService : ITicketService
         }
 
         // Truy vấn tất cả vé của người dùng từ cơ sở dữ liệu
-        var tickets = await _unitOfWork.TicketRepository.GetAllAsync(x => x.UserId == userId);
+        var tickets = await _unitOfWork.TicketRepository.GetAllAsync(x => x.UserId == userId && x.IsVisible);
 
         if (tickets == null || !tickets.Any())
         {
