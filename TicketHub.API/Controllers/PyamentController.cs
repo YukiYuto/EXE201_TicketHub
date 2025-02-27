@@ -23,4 +23,12 @@ public class PaymentController : ControllerBase
 
         return StatusCode(responseDto.StatusCode, responseDto);
     }
+    
+    [HttpPost("confirm-payment")]
+    public async Task<ActionResult<ResponseDto>> ConfirmPayment([FromBody] ConfirmPayment confirmPaymentDTO)
+    {
+        var responseDto = await _paymentService.ConfirmPayOsTransaction(confirmPaymentDTO);
+
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
 }

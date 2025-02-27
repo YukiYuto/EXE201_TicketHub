@@ -6,6 +6,7 @@ public class UpdateUserProfileDto
     public string? AvatarUrl { get; set; }
     public string? Country { get; set; }
     public string? Address { get; set; }
+    public string? City { get; set; }
     
     // Các trường dành cho người dùng
     public string? FullName { get; set; }

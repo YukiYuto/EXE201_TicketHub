@@ -10,5 +10,6 @@ public interface IUnitOfWork
     IOrderRepository OrderRepository { get; }
     IOrderTicketRepository OrderTicketRepository { get; }
     IPaymentRepository PaymentRepository { get; }
+    ITransactionRepository TransactionRepository { get; }
     Task<int> SaveAsync();
 }

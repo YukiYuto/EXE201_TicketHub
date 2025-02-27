@@ -147,7 +147,7 @@ public class CartService : ICartService
                 };
             }
 
-            // Lấy giỏ hàng của User
+            // Lấy giỏ hàng của User (bao gồm CartItems và Ticket)
             var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId,
                 includeProperties: "CartItems.Ticket");
 
@@ -162,14 +162,17 @@ public class CartService : ICartService
                 };
             }
 
-            // Chuyển đổi danh sách CartItems thành DTO để trả về
-            var cartItemsDto = cart.CartItems.Select(ci => new
-            {
-                CartItemId = ci.CartItemId,
-                TicketId = ci.Ticket.TicketId,
-                TicketName = ci.Ticket.TicketName,
-                TicketPrice = ci.Ticket.TicketPrice
-            }).ToList();
+            // Lọc các CartItem có Status == "1"
+            var cartItemsDto = cart.CartItems
+                .Where(ci => ci.Status == "1")  // Chỉ lấy các mục có status = "1"
+                .Select(ci => new
+                {
+                    CartItemId = ci.CartItemId,
+                    TicketId = ci.Ticket.TicketId,
+                    TicketName = ci.Ticket.TicketName,
+                    TicketPrice = ci.Ticket.TicketPrice
+                })
+                .ToList();
 
             return new ResponseDto
             {

@@ -9,6 +9,7 @@ using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Payment;
 using TicketHub.Services.IService;
 using TicketHub.Utility.Payment;
+using Transaction = TicketHub.Models.Domain.Transaction;
 
 namespace TicketHub.Services.Service;
 
@@ -138,74 +139,102 @@ public class PaymentService : IPaymentService
         }
     }
 
-    public async Task<ResponseDto> UpdatePayOsPaymentStatus(ClaimsPrincipal User, Guid paymentTransactionId)
+public async Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPayment)
+{
+    try
     {
-        /*try
-        {
-            PaymentTransactions paymentTransactions =
-                await _unitOfWork.PaymentTransactionsRepository.GetById(paymentTransactionId);
-            if (paymentTransactions is null)
-            {
-                return new ResponseDto()
-                {
-                    Message = "Payment transaction is not exist",
-                    IsSuccess = false,
-                    StatusCode = 404,
-                    Result = null
-                };
-            }
-
-            long orderNumber = (long)paymentTransactions.AppointmentNumber;
-            var paymentStatus = _payOS.getPaymentLinkInformation(orderNumber);
-
-            if (paymentStatus != null)
-            {
-                paymentTransactions.Status = paymentStatus.Result.status;
-            }
-
-            _unitOfWork.PaymentTransactionsRepository.Update(paymentTransactions);
-            await _unitOfWork.SaveAsync();
-
-            if (paymentTransactions.Status.Equals(StaticPayment.paymentStatusSucess))
-            {
-                var appointment = await _unitOfWork.AppointmentRepository.GetAppointmentByAppmointNumer(orderNumber);
-                Transaction transaction = new Transaction()
-                {
-                    CustomerId = appointment.CustomerId,
-                    AppointmentId = appointment.AppointmentId,
-                    PaymentTransactionId = paymentTransactionId,
-                    Amount = paymentTransactions.Amount,
-                    TransactionMethod = "Tranfer",
-                    TransactionDateTime = DateTime.Now
-                };
-
-                await _unitOfWork.TransactionsRepository.AddAsync(transaction);
-                await _unitOfWork.SaveAsync();
-
-                appointment.BookingStatus = 1;
-                _unitOfWork.AppointmentRepository.Update(appointment);
-                await _unitOfWork.SaveAsync();
-            }*/
-
-        return new ResponseDto()
-        {
-            Message = "Update status successfully",
-            IsSuccess = true,
-            StatusCode = 200,
-            //Result = paymentStatus.Result
-        };
-        /*}
-        catch (Exception e)
+        var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(confirmPayment.orderNumber);
+        if (order is null)
         {
             return new ResponseDto()
             {
-                Message = e.Message,
+                Message = "Order does not exist",
                 IsSuccess = false,
-                StatusCode = 500,
+                StatusCode = 404,
                 Result = null
             };
-        }*/
+        }
+
+        // 🔹 Kiểm tra giao dịch thanh toán trên PayOS
+        PaymentLinkInformation transactionInfo = await _payOS.getPaymentLinkInformation(confirmPayment.orderNumber);
+        if (transactionInfo == null || transactionInfo.status != StaticPayment.paymentStatusSucess)
+        {
+            return new ResponseDto()
+            {
+                Message = "Transaction not found or not successful",
+                IsSuccess = false,
+                StatusCode = 400,
+                Result = null
+            };
+        }
+
+        // 🔹 Cập nhật trạng thái thanh toán
+        var payment = await _unitOfWork.PaymentRepository.GetPaymentByOrderNumber(confirmPayment.orderNumber);
+        if (payment == null)
+        {
+            return new ResponseDto()
+            {
+                Message = "Payment record not found",
+                IsSuccess = false,
+                StatusCode = 404,
+                Result = null
+            };
+        }
+
+        payment.Status = StaticPayment.paymentStatusSucess;
+        _unitOfWork.PaymentRepository.Update(payment);
+
+        // 🔹 Lấy danh sách vé thuộc đơn hàng
+        var orderTickets = await _unitOfWork.OrderTicketRepository.GetTicketsByOrderId(order.OrderId);
+        var ticketIds = orderTickets.Select(ot => ot.TicketId).ToList();
+
+        // 🔹 Cập nhật chủ sở hữu vé
+        var tickets = await _unitOfWork.TicketRepository.GetListAsync(t => ticketIds.Contains(t.TicketId));
+        foreach (var ticket in tickets)
+        {
+            ticket.UserId = order.UserId; // Chuyển quyền sở hữu sang người mua
+        }
+
+        _unitOfWork.TicketRepository.UpdateRange(tickets);
+
+        // 🔹 Lưu transaction vào database
+        var transaction = new Transaction()
+        {
+            CustomerId = order.UserId,
+            OrderId = order.OrderId,
+            PaymentId = confirmPayment.paymentTransactionId,
+            Amount = payment.Amount,
+            TransactionMethod = "Tranfer",
+            TransactionDateTime = DateTime.UtcNow
+        };
+
+        await _unitOfWork.TransactionRepository.AddAsync(transaction);
+        await _unitOfWork.SaveAsync();
+
+        return new ResponseDto()
+        {
+            Message = "Payment confirmed successfully, tickets ownership updated, and transaction saved",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = new
+            {
+                TransactionId = transaction.PaymentId,
+                Status = payment.Status,
+                PayOS_ConfirmUrl = transactionInfo.transactions // 🔹 Link xác nhận của PayOS
+            }
+        };
     }
+    catch (Exception ex)
+    {
+        return new ResponseDto()
+        {
+            Message = ex.Message,
+            IsSuccess = false,
+            StatusCode = 500,
+            Result = null
+        };
+    }
+}
 
     public Task<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId,
         string cancellationReason)

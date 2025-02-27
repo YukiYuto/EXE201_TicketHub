@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TicketHub.DataAccess.Context;
 
@@ -11,9 +12,11 @@ using TicketHub.DataAccess.Context;
 namespace TicketHub.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250225114255_MigrationDb_Transaction")]
+    partial class MigrationDb_Transaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -296,7 +299,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatar.png",
                             BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789123",
-                            ConcurrencyStamp = "a4943008-7c75-424c-9549-96d96f00e79d",
+                            ConcurrencyStamp = "901f11de-3bb5-4ac1-bce0-ee328852c5e8",
                             Country = "Country",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
@@ -304,10 +307,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEGtbpaLdzvHSkBJ8yQxDueo0S4G+VIGrjI66mPiJ1HaVjQkjRzAGab2F8CzArj0J0w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHvr2NloIT9NmvIjFDBW3LD7uaGG5M4fuY3yZ3DOHsn4DuU7ClPhrJ8wPkm2II74GA==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "6b2a716b-498a-4fb6-88ec-373ba2071dfe",
+                            SecurityStamp = "f57e6db4-89ef-4b55-94b9-bb8a58f266e5",
                             TwoFactorEnabled = false,
                             UserName = "admin@gmail.com"
                         },
@@ -319,7 +322,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatarStaff2.png",
                             BirthDate = new DateTime(1991, 2, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789124",
-                            ConcurrencyStamp = "6e0931e0-40b7-41da-b8ac-d54ac98b5105",
+                            ConcurrencyStamp = "812d0b10-6d77-4f3c-bec2-c6be3690e992",
                             Country = "Country",
                             Email = "staff2@gmail.com",
                             EmailConfirmed = true,
@@ -327,10 +330,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "STAFF2@GMAIL.COM",
                             NormalizedUserName = "STAFF2@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMXEr9X1jhnjpzsEZ5JcSmHyUeWmElEVATlEiW5tg3VGTQO2q1NGB/+CcFxsk3pNTA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGKAx34ezG42RVVpwtz5q8zyPw8ndMTv/H1LStBgzkpAV5bFEKNuAZzEXFYfQYbuLA==",
                             PhoneNumber = "0987654321",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "94930ab4-4816-44ab-8907-a5c53ed1ee71",
+                            SecurityStamp = "ae706068-30c8-48ff-85d0-7633577e6b20",
                             TwoFactorEnabled = false,
                             UserName = "staff2@gmail.com"
                         },
@@ -342,7 +345,7 @@ namespace TicketHub.DataAccess.Migrations
                             AvatarUrl = "https://example.com/avatarStaff.png",
                             BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CCCD = "123456789126",
-                            ConcurrencyStamp = "34ec66f2-fd28-4461-854a-9f75d706c227",
+                            ConcurrencyStamp = "283ccf86-4349-4c70-a834-a9e9590f0d3c",
                             Country = "Country",
                             Email = "staff1@gmail.com",
                             EmailConfirmed = true,
@@ -350,10 +353,10 @@ namespace TicketHub.DataAccess.Migrations
                             LockoutEnabled = true,
                             NormalizedEmail = "STAFF1@GMAIL.COM",
                             NormalizedUserName = "STAFF1@GMAIL.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAECTnPsjvhkuklXlSZZP6OgN2eekCJZNpE38mG5/ej6G0vw0QlDyi752yyccugB8fmg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHErcnM5uNq5/0+COLsZm9q+wQ18Id9RntHljJycAUpHsLTyN0ofvCMro7gl+2DJxg==",
                             PhoneNumber = "0123456789",
                             PhoneNumberConfirmed = true,
-                            SecurityStamp = "b44bf258-d483-4bf8-a214-a7d5260381e0",
+                            SecurityStamp = "291f9418-1a36-44a0-adfe-97436e9f9207",
                             TwoFactorEnabled = false,
                             UserName = "staff1@gmail.com"
                         });
@@ -590,10 +593,6 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.Property<long>("OrderNumber")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");

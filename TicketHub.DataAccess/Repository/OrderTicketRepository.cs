@@ -21,4 +21,12 @@ public class OrderTicketRepository : Repository<OrderTicket>, IOrderTicketReposi
             .Select(ot => ot.TicketId)
             .ToListAsync();
     }
+
+    public async Task<List<OrderTicket>> GetTicketsByOrderId(Guid orderId)
+    {
+        return await _context.OrderTickets
+            .Where(ot => ot.OrderId == orderId)
+            .Include(ot => ot.Ticket) 
+            .ToListAsync();
+    }
 }

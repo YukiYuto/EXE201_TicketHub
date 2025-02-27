@@ -1,12 +1,18 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
+using System.Web;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Authentication;
+using TicketHub.Models.DTO.Authentication.Google;
 using TicketHub.Models.DTO.Email;
+using TicketHub.Models.DTO.Image;
 using TicketHub.Services.IService;
 using TicketHub.Utility.Constants;
 
@@ -20,6 +26,8 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly JwtSecurityTokenHandler _tokenHandler;
     private readonly IEmailService _emailService;
+    private readonly IRedisService _redisService;
+    private readonly IFirebaseService _firebaseService;
 
     public AuthService
     (
@@ -27,7 +35,9 @@ public class AuthService : IAuthService
         RoleManager<IdentityRole> roleManager,
         ITokenService tokenService,
         IUnitOfWork unitOfWork,
-        IEmailService emailService
+        IEmailService emailService,
+        IRedisService redisService,
+        IFirebaseService firebaseService
     )
     {
         _userManager = userManager;
@@ -37,6 +47,8 @@ public class AuthService : IAuthService
         _unitOfWork = unitOfWork;
         /*_mapperService = mapperService;*/
         _emailService = emailService;
+        _redisService = redisService;
+        _firebaseService = firebaseService;
     }
 
     public async Task<ResponseDto> SignUpCustomer(SignUpCustomerDto signUpCustomerDto)
@@ -303,6 +315,162 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<ResponseDto> SignInByGoogle(SignInByGoogleDto signInByGoogleDto)
+    {
+        // Gọi API của Google để lấy thông tin từ Access Token
+        var httpClient = new HttpClient();
+        var response =
+            await httpClient.GetStringAsync(
+                $"https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={signInByGoogleDto.TokenGoogle}");
+
+        // Parse response từ Google
+        var googleUser = JsonConvert.DeserializeObject<GoogleUserInfo>(response);
+        if (googleUser == null || googleUser.email == null)
+        {
+            return new ResponseDto()
+            {
+                Message = "Invalid Google Access Token",
+                IsSuccess = false,
+                StatusCode = 401
+            };
+        }
+
+        string email = googleUser.email;
+
+        // Tìm kiếm người dùng trong database
+        var user = await _userManager.FindByEmailAsync(email);
+        UserLoginInfo? userLoginInfo = null;
+        if (user is not null)
+        {
+            userLoginInfo = (await _userManager.GetLoginsAsync(user))
+                .FirstOrDefault(x => x.LoginProvider == StaticLoginProvider.Google);
+        }
+
+        if (user?.LockoutEnd is not null)
+        {
+            return new ResponseDto()
+            {
+                Message = "User has been locked",
+                IsSuccess = false,
+                StatusCode = 403,
+                Result = null
+            };
+        }
+
+        if (user is not null && userLoginInfo is null)
+        {
+            return new ResponseDto()
+            {
+                Result = new SignResponseDto()
+                {
+                    AccessToken = "",
+                    RefreshToken = ""
+                },
+                Message = "The email is using by another user",
+                IsSuccess = false,
+                StatusCode = 400
+            };
+        }
+
+        // Nếu user chưa tồn tại, tạo user mới và thêm role "Member"
+        if (user is null)
+        {
+            user = new ApplicationUser
+            {
+                Email = email,
+                FullName = "",
+                UserName = email,
+                AvatarUrl = "",
+                Country = "",
+                CCCD = "",
+                Address = "",
+                EmailConfirmed = true
+            };
+
+            // Tạo user mới trong database
+            var createUserResult = await _userManager.CreateAsync(user);
+            if (!createUserResult.Succeeded)
+            {
+                return new ResponseDto()
+                {
+                    Message = "Error creating user",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            // Thêm thông tin đăng nhập Google vào tài khoản
+            await _userManager.AddLoginAsync(user,
+                new UserLoginInfo(StaticLoginProvider.Google, googleUser.sub, "GOOGLE"));
+
+            // Kiểm tra và tạo role "Member" nếu chưa có
+            var isRoleExist = await _roleManager.RoleExistsAsync(StaticUserRoles.Member);
+            if (!isRoleExist)
+            {
+                await _roleManager.CreateAsync(new IdentityRole(StaticUserRoles.Member));
+            }
+
+            // Thêm role "Member" cho người dùng mới
+            var isRoleAdded = await _userManager.AddToRoleAsync(user, StaticUserRoles.Member);
+            if (!isRoleAdded.Succeeded)
+            {
+                return new ResponseDto()
+                {
+                    Message = "Error adding role",
+                    IsSuccess = false,
+                    StatusCode = 500
+                };
+            }
+        }
+
+        // Cập nhật thông tin người dùng
+        await _userManager.UpdateAsync(user);
+
+        // Kiểm tra thông tin bắt buộc đã được cập nhật chưa
+        bool isProfileComplete =
+            !string.IsNullOrEmpty(user.FullName) &&
+            !string.IsNullOrEmpty(user.Address) &&
+            !string.IsNullOrEmpty(user.AvatarUrl) &&
+            !string.IsNullOrEmpty(user.Country) &&
+            !string.IsNullOrEmpty(user.CCCD);
+
+        // Tạo Access Token và Refresh Token cho user
+        var accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user!);
+        var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user!);
+        await _tokenService.StoreRefreshToken(user!.Id, refreshToken);
+
+        // Nếu hồ sơ chưa hoàn chỉnh, trả về cảnh báo
+        if (!isProfileComplete)
+        {
+            return new ResponseDto()
+            {
+                Result = new SignByGoogleResponseDto()
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    IsProfileComplete = false
+                },
+                Message = "Your profile is incomplete. Please update your profile information.",
+                IsSuccess = true,
+                StatusCode = 200
+            };
+        }
+
+        // Nếu thông tin đầy đủ
+        return new ResponseDto()
+        {
+            Result = new SignByGoogleResponseDto()
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                IsProfileComplete = true
+            },
+            Message = "Sign in successfully",
+            IsSuccess = true,
+            StatusCode = 200
+        };
+    }
+
 
     public async Task<ResponseDto> UpdateUserProfile(ClaimsPrincipal userPrincipal,
         UpdateUserProfileDto updateUserProfileDto)
@@ -342,6 +510,7 @@ public class AuthService : IAuthService
             user.CCCD = updateUserProfileDto.CCCD;
             user.Address = updateUserProfileDto.Address;
             user.BirthDate = updateUserProfileDto.BirthDate;
+            user.AvatarUrl = updateUserProfileDto.AvatarUrl;
         }
 
         // 🔹 **Kiểm tra nếu user là "Organizer"**
@@ -392,14 +561,80 @@ public class AuthService : IAuthService
         };
     }
 
-    public Task<ResponseDto> GetUserById(Guid userId)
+    public async Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto)
     {
-        throw new NotImplementedException();
-    }
+        try
+        {
+            if (refreshTokenDto == null || string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
+            {
+                return new ResponseDto
+                {
+                    Message = "Invalid refresh token",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
 
-    public Task<ResponseDto> RefreshToken(RefreshTokenDto refreshTokenDto)
-    {
-        throw new NotImplementedException();
+            // Giải mã token để lấy userId
+            var principal = await _tokenService.GetPrincipalFromToken(refreshTokenDto.RefreshToken);
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new ResponseDto
+                {
+                    Message = "Invalid token",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            // Kiểm tra refresh token có tồn tại trên Redis không
+            string redisKey = $"userId:{userId}:refreshToken";
+            var storedRefreshToken = await _redisService.RetrieveString(redisKey);
+
+            if (string.IsNullOrEmpty(storedRefreshToken) || storedRefreshToken != refreshTokenDto.RefreshToken)
+            {
+                return new ResponseDto
+                {
+                    Message = "Refresh token expired or invalid. Please log in again.",
+                    IsSuccess = false,
+                    StatusCode = 401
+                };
+            }
+
+            // Lấy thông tin user
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // Cấp mới access token
+            var newAccessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+
+            return new ResponseDto
+            {
+                Message = "Access token refreshed successfully",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = newAccessToken
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ResponseDto
+            {
+                Message = "An error occurred: " + ex.Message,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 
     public async Task<ResponseDto> FetchUserByToken(ClaimsPrincipal user)
@@ -647,9 +882,11 @@ public class AuthService : IAuthService
         //token reset password
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        // build link reset password
-        string resetLink =
-            $"http://localhost:5173/reset-password?email={user.Email}&token={Uri.UnescapeDataString(token)}";
+        // 🔹 Mã hóa token bằng Base64 trước khi đưa vào URL
+        string encodedToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
+
+        // Tạo link reset password
+        string resetLink = $"http://localhost:5173/reset-password?email={user.Email}&token={encodedToken}";
 
         bool emailSent = await _emailService.SendPasswordResetEmailAsync(user.Email!, resetLink);
 
@@ -677,6 +914,22 @@ public class AuthService : IAuthService
 
     public async Task<ResponseDto> ResetPassword(ResetPasswordDto resetPasswordDto)
     {
+        
+        string decodedToken;
+        try
+        {
+            decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(resetPasswordDto.Token));
+        }
+        catch (Exception)
+        {
+            return new ResponseDto
+            {
+                IsSuccess = false,
+                Message = "Invalid or corrupted token.",
+                StatusCode = 400,
+                Result = null
+            };
+        }
         // Check if new password and confirm password match
         if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmPassword)
         {
@@ -701,7 +954,7 @@ public class AuthService : IAuthService
             };
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, resetPasswordDto.NewPassword);
         if (!result.Succeeded)
         {
             return new ResponseDto
@@ -720,5 +973,102 @@ public class AuthService : IAuthService
             StatusCode = 200,
             Result = null
         };
+    }
+
+    public async Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal User)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+            {
+                return new ResponseDto
+                {
+                    Message = "File is empty!",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+            }
+
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new ResponseDto
+                {
+                    Message = "Not authenticated!",
+                    IsSuccess = false,
+                    StatusCode = 401
+                };
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return new ResponseDto
+                {
+                    Message = "User does not exist",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+            }
+
+            // 🔹 Upload ảnh lên Firebase
+            var responseDto = await _firebaseService.UploadImageUser(file, StaticFirebaseFolders.UserAvatars);
+            if (!responseDto.IsSuccess || string.IsNullOrEmpty(responseDto.Result?.ToString()))
+            {
+                return new ResponseDto
+                {
+                    Message = "Image upload failed!",
+                    IsSuccess = false,
+                    StatusCode = 500
+                };
+            }
+
+            // 🔹 Cập nhật Avatar URL
+            user.AvatarUrl = responseDto.Result?.ToString();
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                return new ResponseDto
+                {
+                    Message = "Failed to update user avatar!",
+                    IsSuccess = false,
+                    StatusCode = 500
+                };
+            }
+
+            // 🔹 Xóa refresh token cũ nếu có
+            var existingRefreshToken = await _tokenService.RetrieveRefreshToken(user.Id);
+            if (!string.IsNullOrEmpty(existingRefreshToken))
+            {
+                await _tokenService.DeleteRefreshToken(user.Id);
+            }
+
+            // 🔹 Tạo Access Token & Refresh Token mới
+            var accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+            var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
+            await _tokenService.StoreRefreshToken(user.Id, refreshToken);
+
+            return new ResponseDto
+            {
+                Message = "Upload user avatar successfully!",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = new AvatarTokenDto
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    AvatarUrl = user.AvatarUrl
+                }
+            };
+        }
+        catch (Exception e)
+        {
+            return new ResponseDto
+            {
+                Message = $"Error: {e.Message}",
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
     }
 }

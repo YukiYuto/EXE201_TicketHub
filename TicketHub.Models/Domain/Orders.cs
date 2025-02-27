@@ -10,5 +10,6 @@ public class Orders
     [ForeignKey("UserId")] public virtual ApplicationUser ApplicationUser { get; set; } = null!;
     public double TotalPrice { get; set; }
     public long OrderNumber { get; set; }
+    public string Status { get; set; } = null!;
     public virtual ICollection<OrderTicket> OrderTickets { get; set; } = new List<OrderTicket>();
 }
