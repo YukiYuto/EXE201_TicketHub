@@ -73,6 +73,16 @@ namespace TicketHub.API.Controllers
             var responseDto = await _eventService.DeleteEvent(User, eventId);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
+        
+        [HttpGet("search")]
+        public async Task<ActionResult<ResponseDto>> SearchEvents
+        (
+            [FromQuery] string eventName
+        )
+        {
+            var responseDto = await _eventService.SearchEvent(User, eventName);
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
     
     }
 }

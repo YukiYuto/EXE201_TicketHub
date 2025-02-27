@@ -20,4 +20,5 @@ public interface ICategoryService
     Task<ResponseDto> CreateCategory(ClaimsPrincipal user, CreateCategoryDto createCategoryDto);
     Task<ResponseDto> UpdateCategory(ClaimsPrincipal user, UpdateCategoryDto updateCategoryDto);
     Task<ResponseDto> DeleteCategory(ClaimsPrincipal user, Guid categoryId);
+    Task<ResponseDto> SearchCategory(ClaimsPrincipal user, string nameCategory);
 }

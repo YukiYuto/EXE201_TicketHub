@@ -281,4 +281,29 @@ public class EventService : IEventService
             StatusCode = 201
         };
     }
+    
+    public async Task<ResponseDto> SearchEvent(ClaimsPrincipal user, string eventName)
+    {
+        var events = await _unitOfWork.EventRepository.GetAsync(x => x.EventName.Contains(eventName));
+        if (events == null)
+        {
+            return new ResponseDto
+            {
+                Message = "Event not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        var eventDto = _mapper.Map<GetEventDto>(events);
+
+        return new ResponseDto
+        {
+            Message = "Event found successfully",
+            Result = eventDto,
+            IsSuccess = true,
+            StatusCode = 201
+        };
+    }
 }
