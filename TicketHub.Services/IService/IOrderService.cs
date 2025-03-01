@@ -6,7 +6,7 @@ namespace TicketHub.Services.IService;
 
 public interface IOrderService
 {
-    Task<ResponseDto> GetOrders
+    /*Task<ResponseDto> GetOrders
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -20,5 +20,5 @@ public interface IOrderService
 
     Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto);
     Task<ResponseDto> UpdateOrder(ClaimsPrincipal user, UpdateOrderDto updateOrderDto);
-    Task<ResponseDto> DeleteOrder(ClaimsPrincipal user, Guid orderId);
+    Task<ResponseDto> DeleteOrder(ClaimsPrincipal user, Guid orderId);*/
 }

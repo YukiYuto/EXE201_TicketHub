@@ -24,6 +24,6 @@ public class ApplicationUser : IdentityUser
     // Thuộc tính xác định loại người dùng: "Customer", "Organizer", "SecondarySeller"
     [StringLength(20)] public string? UserType { get; set; }
 
-    /*public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
-    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();*/
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 }

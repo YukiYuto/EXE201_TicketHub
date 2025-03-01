@@ -31,7 +31,7 @@ public class PaymentService : IPaymentService
         );
     }
 
-    public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
+    /*public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
     {
         try
         {
@@ -240,5 +240,5 @@ public async Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPay
         string cancellationReason)
     {
         throw new NotImplementedException();
-    }
+    }*/
 }

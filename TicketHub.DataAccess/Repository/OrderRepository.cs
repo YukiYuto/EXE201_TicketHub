@@ -25,10 +25,10 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         _context.Orders.UpdateRange(orders);
     }
 
-    public async Task<Orders> GetById(Guid orderId)
+    /*public async Task<Orders> GetById(Guid orderId)
     {
         return await _context.Orders.FirstOrDefaultAsync(x => x.OrderId == orderId);
-    }
+    }*/
 
     public async Task<Orders> GetOrderByOrderNumber(long orderNumber)
     {

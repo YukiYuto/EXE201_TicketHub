@@ -19,7 +19,7 @@ public class EventService : IEventService
         _mapper = mapper;
     }
 
-    public async Task<ResponseDto> GetEvents
+    /*public async Task<ResponseDto> GetEvents
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -305,5 +305,5 @@ public class EventService : IEventService
             IsSuccess = true,
             StatusCode = 201
         };
-    }
+    }*/
 }

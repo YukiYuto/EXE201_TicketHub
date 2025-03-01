@@ -27,7 +27,7 @@ namespace TicketHub.API.Controllers
             return StatusCode(responseDto.StatusCode, responseDto);
         }
         
-        [HttpGet("admin/cart-by-user")]
+        /*[HttpGet("admin/cart-by-user")]
         [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<ResponseDto>> GetCartByUserId(string userId)
         {
@@ -74,6 +74,6 @@ namespace TicketHub.API.Controllers
         {
             var responseDto = await _cartService.Checkout(User, checkoutDto);
             return StatusCode(responseDto.StatusCode, responseDto);
-        }
+        }*/
     }
 }
