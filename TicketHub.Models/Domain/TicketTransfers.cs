@@ -5,12 +5,19 @@ namespace TicketHub.Models.Domain;
 
 public class TicketTransfers
 {
-    [Key]public Guid TicketTransferId { get; set; }
+    [Key] public Guid TicketTransferId { get; set; }
     public Guid TicketId { get; set; }
     [ForeignKey("TicketId")] public virtual Ticket Ticket { get; set; } = null!;
+    
+    public Guid? ResaleListingId { get; set; }
+    [ForeignKey("ResaleListingId")] public virtual ResaleListing? ResaleListing { get; set; } = null!;
+
     public string SellerId { get; set; } = null!;
     [ForeignKey("SellerId")] public virtual ApplicationUser Seller { get; set; } = null!;
+
     public string BuyerId { get; set; } = null!;
     [ForeignKey("BuyerId")] public virtual ApplicationUser Buyer { get; set; } = null!;
+
     public double Amount { get; set; }
+    public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
 }

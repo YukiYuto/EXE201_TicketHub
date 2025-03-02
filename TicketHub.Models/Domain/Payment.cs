@@ -18,5 +18,4 @@ public class Payment
     public DateTime? CreatedAt { get; set; }
 
     public string? Status { get; set; }
-    public string? Reason { get; set; }
 }

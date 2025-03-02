@@ -70,6 +70,16 @@ namespace TicketHub.API.Controllers
             var responseDto = await _categoryService.DeleteCategory(User, categoryId);
             return StatusCode(responseDto.StatusCode, responseDto);
         }
+        
+        [HttpGet("search")]
+        public async Task<ActionResult<ResponseDto>> SearchCategories
+        (
+            [FromQuery] string categoryName
+        )
+        {
+            var responseDto = await _categoryService.SearchCategory(User, categoryName);
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
     }
 }
 

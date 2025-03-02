@@ -262,4 +262,27 @@ public class CategoryService : ICategoryService
             StatusCode = 201
         };
     }
+    
+    public async Task<ResponseDto> SearchCategory(ClaimsPrincipal user, string nameCategory)
+    {
+        var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryName == nameCategory);
+        if (category == null)
+        {
+            return new ResponseDto
+            {
+                Message = "Category not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        return new ResponseDto
+        {
+            Message = "Category found successfully",
+            Result = category,
+            IsSuccess = true,
+            StatusCode = 200
+        };
+    }
 }

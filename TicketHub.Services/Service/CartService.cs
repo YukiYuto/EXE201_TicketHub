@@ -83,7 +83,7 @@ public class CartService : ICartService
     }
 
     //admin
-    public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
+    /*public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
     {
         // Kiểm tra quyền admin
         var isAdmin = User.IsInRole(StaticUserRoles.Admin);
@@ -130,9 +130,9 @@ public class CartService : ICartService
             StatusCode = 200,
             Result = cartDto
         };
-    }
+    }*/
 
-    public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User)
+    /*public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User)
     {
         try
         {
@@ -191,9 +191,9 @@ public class CartService : ICartService
                 StatusCode = 500
             };
         }
-    }
+    }*/
 
-    public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
+    /*public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
     {
         try
         {
@@ -312,9 +312,9 @@ public class CartService : ICartService
                 Result = null
             };
         }
-    }
+    }*/
 
-    public async Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId)
+    /*public async Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId)
     {
         var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -468,5 +468,5 @@ public class CartService : ICartService
                 StatusCode = 500
             };
         }
-    }
+    }*/
 }
