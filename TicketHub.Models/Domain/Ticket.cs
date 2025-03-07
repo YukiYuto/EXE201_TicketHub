@@ -23,7 +23,7 @@ public class Ticket
     public bool IsVisible { get; set; } = true;
     public TicketStatus Status { get; set; }
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
-    public virtual ICollection<OrderTicket> OrderTickets { get; set; } = new List<OrderTicket>();
+    public virtual ICollection<OrderDetail> OrderTickets { get; set; } = new List<OrderDetail>();
 
     /*[Key] public Guid TicketId { get; set; }
 [StringLength(500)] public string TicketName { get; set; } = null!;
