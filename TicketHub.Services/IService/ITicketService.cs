@@ -1,12 +1,16 @@
 ﻿using System.Security.Claims;
 using TicketHub.Models.DTO;
-using TicketHub.Models.DTO.Ticket;
+using TicketHub.Models.DTO.TicketTemplate;
 
 namespace TicketHub.Services.IService;
 
 public interface ITicketService
 {
-    /*Task<ResponseDto> GetTickets
+    //Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
+    Task<ResponseDto> CreateTicketByOrganization(ClaimsPrincipal user,
+        CreateTicketTemplateDto createTicketTemplateDto);
+
+    Task<ResponseDto> GetTicketTemplates
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -16,7 +20,7 @@ public interface ITicketService
         int pageSize = 0
     );
 
-    Task<ResponseDto> GetTicket(ClaimsPrincipal user, Guid ticketId);
+    /*Task<ResponseDto> GetTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user);
     Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
     Task<ResponseDto> CreateTicketByOrganiztion(ClaimsPrincipal user, List<CreateTicketDto> createTicketDtos);

@@ -9,10 +9,12 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
 
+
     public UnitOfWork(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         TicketRepository = new TicketRepository(_context);
+        TicketTemplateRepository = new TicketTemplateRepository(_context);
         EventRepository = new EventRepository(_context);
         CartRepository = new CartRepository(_context);
         CartItemRepository = new CartItemRepository(_context);
@@ -21,9 +23,15 @@ public class UnitOfWork : IUnitOfWork
         //OrderTicketRepository = new OrderTicketRepository(_context);
         PaymentRepository = new PaymentRepository(_context);
         TransactionRepository = new TransactionRepository(_context);
+        CustomerRepository = new CustomerRepository(_context);
+        OrganizationRepository = new OrganizationRepository(_context);
     }
 
+
+    public ICustomerRepository CustomerRepository { get; }
+    public IOrganizationRepository OrganizationRepository { get; }
     public ITicketRepository TicketRepository { get; set; }
+    public ITicketTemplateRepository TicketTemplateRepository { get; set; }
     public IEventRepository EventRepository { get; set; }
     public ICartRepository CartRepository { get; set; }
     public ICartItemRepository CartItemRepository { get; set; }

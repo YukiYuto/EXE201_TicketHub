@@ -7,15 +7,39 @@ namespace TicketHub.Services.Service;
 
 public class FirebaseService : IFirebaseService
 {
-    private readonly StorageClient _storageClient;
     private readonly string _bucketName = "tickethub-af919.appspot.com";
+    private readonly StorageClient _storageClient;
 
     public FirebaseService(StorageClient storageClient)
     {
         _storageClient = storageClient;
     }
 
-    public Task<MemoryStream> GetImage(string filePath)
+    public async Task<ResponseDto> DeleteImage(string filePath)
+    {
+        try
+        {
+            await _storageClient.DeleteObjectAsync(_bucketName, filePath);
+
+            return new ResponseDto
+            {
+                IsSuccess = true,
+                StatusCode = 200,
+                Message = $"Delete image {filePath} successfully!"
+            };
+        }
+        catch (Exception)
+        {
+            return new ResponseDto
+            {
+                IsSuccess = false,
+                StatusCode = 400,
+                Message = "Delete image failed!"
+            };
+        }
+    }
+
+    /*public Task<MemoryStream> GetImage(string filePath)
     {
         throw new NotImplementedException();
     }
@@ -174,5 +198,50 @@ public class FirebaseService : IFirebaseService
                 Message = "Delete image failed!"
             };
         }
+    }*/
+
+    public async Task<ResponseDto> UploadImage(IFormFile file, string folder, string? oldFileUrl = null)
+    {
+        if (file is null || file.Length == 0)
+            return new ResponseDto
+            {
+                IsSuccess = false,
+                StatusCode = 400,
+                Message = "File is empty!"
+            };
+
+        // 🔹 Nếu có ảnh cũ, xóa ảnh cũ trước khi upload ảnh mới
+        if (!string.IsNullOrEmpty(oldFileUrl))
+        {
+            // Trích xuất đường dẫn từ URL công khai
+            var filePath = oldFileUrl.Replace($"https://storage.googleapis.com/{_bucketName}/", "");
+            await DeleteImage(filePath);
+        }
+
+        // 🔹 Tạo tên file mới
+        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+        var filePathNew = $"{folder}/{fileName}";
+
+        // 🔹 Upload file lên Firebase
+        await using (var stream = file.OpenReadStream())
+        {
+            await _storageClient.UploadObjectAsync(
+                _bucketName,
+                filePathNew,
+                file.ContentType,
+                stream,
+                new UploadObjectOptions { PredefinedAcl = PredefinedObjectAcl.PublicRead }
+            );
+        }
+
+        var publicUrl = $"https://storage.googleapis.com/{_bucketName}/{filePathNew}";
+
+        return new ResponseDto
+        {
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = publicUrl,
+            Message = "Upload image successfully!"
+        };
     }
 }

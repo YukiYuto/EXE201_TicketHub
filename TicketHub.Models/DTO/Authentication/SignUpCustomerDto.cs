@@ -21,10 +21,8 @@ public class SignUpCustomerDto
     [ConfirmPassword("Password")]
     [NotMapped]
     public string ConfirmPassword { get; set; } = null!;
- 
-    [Required]
-    [Cccd]
-    public string CCCD { get; set; } = null!;
+
+    [Required] [Cccd] public string CCCD { get; set; } = null!;
 
     [Required]
     [DataType(DataType.DateTime)]
@@ -34,13 +32,12 @@ public class SignUpCustomerDto
     [DataType(DataType.PhoneNumber)]
     [Phone]
     public string PhoneNumber { get; set; } = null!;
- 
-    [Required]
-    public string FullName { get; set; } = null!;
 
-    [Required]
-    public string Country { get; set; } = null!;
- 
-    [Required]
-    public string Address { get; set; } = null!;
+    [Required] public string FullName { get; set; } = null!;
+
+    [Required] public string Country { get; set; } = null!;
+
+    [Required] public string Address { get; set; } = null!;
+
+    [Required] public string Gender { get; set; } = null!;
 }

@@ -5,9 +5,12 @@ namespace TicketHub.Services.IService;
 
 public interface IFirebaseService
 {
-    Task<ResponseDto> UploadImageTicket(IFormFile file, string folder);
+    /*Task<ResponseDto> UploadImageTicket(IFormFile file, string folder);
     Task<ResponseDto> UploadImageUser(IFormFile file, string folder);
     Task<ResponseDto> UploadImageChPlay(IFormFile file, string folder);
     Task<ResponseDto> DeleteImage(string filePath);
-    Task<MemoryStream> GetImage(string filePath);
+    Task<MemoryStream> GetImage(string filePath);*/
+
+    Task<ResponseDto> UploadImage(IFormFile file, string folder, string? oldFileUrl = null);
+    Task<ResponseDto> DeleteImage(string filePath);
 }
