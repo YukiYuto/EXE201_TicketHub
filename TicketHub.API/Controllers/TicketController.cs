@@ -135,5 +135,12 @@ namespace TicketHub.API.Controllers
 
             return StatusCode(responseDto.StatusCode, responseDto);
         }*/
+
+        [HttpGet("count-paid-ticket")]
+        public async Task<ActionResult<ResponseDto>> GetCountPaidTicket()
+        {
+            var responseDto = await _ticketService.GetCountPaidTicket(User);
+            return StatusCode(responseDto.StatusCode, responseDto);
+        }
     }
 }

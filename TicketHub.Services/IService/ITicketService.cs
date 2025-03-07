@@ -27,4 +27,5 @@ public interface ITicketService
     Task<ResponseDto> RejectTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> GenerateQRCode(Guid ticketId, string serialNumber);
     Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, string serialNumber);*/
+    Task<ResponseDto> GetCountPaidTicket(ClaimsPrincipal user);
 }

@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IFirebaseService, FirebaseService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IChatRoomService, ChatRoomService>();
+        services.AddScoped<IMessageService, MessageService>();
         return services;
     }
 }

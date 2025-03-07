@@ -11,5 +11,7 @@ public interface IUnitOfWork
     IOrderTicketRepository OrderTicketRepository { get; }
     IPaymentRepository PaymentRepository { get; }
     ITransactionRepository TransactionRepository { get; }
+    IChatRoomRepository ChatRoomRepository { get; }
+    IMessageRepository MessageRepository { get; }
     Task<int> SaveAsync();
 }

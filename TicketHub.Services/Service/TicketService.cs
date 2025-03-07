@@ -582,4 +582,44 @@ public class TicketService : ITicketService
             StatusCode = 200
         };
     }*/
+    
+    public async Task<ResponseDto> GetCountPaidTicket(ClaimsPrincipal user)
+    {
+        var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return new ResponseDto
+            {
+                Message = "User not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        // Truy vấn tất cả vé đã mua của người dùng từ cơ sở dữ liệu
+        var tickets = await _unitOfWork.TicketRepository.GetAllAsync(x => x.UserId == userId && x.Status == TicketStatus.Success);
+
+        if (tickets == null || !tickets.Any())
+        {
+            return new ResponseDto
+            {
+                Message = "No tickets found for the user",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        // Đếm số lượng vé đã mua
+        var count = tickets.Count();
+
+        return new ResponseDto
+        {
+            Message = "Get count paid ticket successfully",
+            Result = count,
+            IsSuccess = true,
+            StatusCode = 200
+        };
+    }
 }
