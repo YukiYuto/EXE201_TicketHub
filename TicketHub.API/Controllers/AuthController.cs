@@ -2,18 +2,16 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.Domain;
-using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Authentication;
 using TicketHub.Models.DTO.Email;
-using TicketHub.Models.DTO.Image;
 using TicketHub.Services.IService;
 
 namespace TicketHub.API.Controllers;
 
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthService _authService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthController(UserManager<ApplicationUser> userManager, IAuthService authService)
     {
@@ -55,15 +53,7 @@ public class AuthController : ControllerBase
         var response = await _authService.UpdateUserProfile(User, updateUserProfileDto);
         return StatusCode(response.StatusCode, response);
     }
-    
-    [HttpPost]
-    [Route("user/avatar")]
-    public async Task<IActionResult> UploadUserAvatar(AvatarUploadDto avatarUploadDto)
-    {
-        var responseDto = await _authService.UploadUserAvatar(avatarUploadDto.File, User);
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }
-    
+
     [HttpGet("user")]
     [Authorize]
     public async Task<IActionResult> FetchUserByToken()

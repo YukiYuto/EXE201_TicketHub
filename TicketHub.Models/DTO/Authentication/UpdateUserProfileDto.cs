@@ -7,10 +7,11 @@ public class UpdateUserProfileDto
     public string? Country { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
-    
+
     // Các trường dành cho người dùng
     public string? FullName { get; set; }
     public string? CCCD { get; set; }
+    public string? Gender { get; set; }
 
     // Các trường dành cho nhà tổ chức sự kiện
     public string? OrganizationName { get; set; }

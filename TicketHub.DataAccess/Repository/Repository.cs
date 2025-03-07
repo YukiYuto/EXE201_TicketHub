@@ -25,7 +25,8 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// The provided code defines a function named GetAsync that retrieves a single entity from a database table, applying filtering and     optional property inclusion logic.
+    ///     The provided code defines a function named GetAsync that retrieves a single entity from a database table, applying
+    ///     filtering and     optional property inclusion logic.
     /// </summary>
     /// <param name="filter"></param>
     /// <param name="includeProperties"></param>
@@ -36,20 +37,19 @@ public class Repository<T> : IRepository<T> where T : class
         query = query.Where(filter);
 
         if (!string.IsNullOrEmpty(includeProperties))
-        {
-            foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
+            foreach (var property in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 query = query.Include(property);
-            }
-        }
 
         return await query.FirstOrDefaultAsync();
     }
 
     /// <summary>
-    /// The function retrieves all objects of type T from the database. It optionally includes related data specified by the includeProperties parameter
-    /// This function first constructs a query based on the provided DbSet, and if includeProperties is not null or empty, it iterates through the properties specified in the parameter and includes them in the query using the Include method. 
-    /// Finally, it executes the query and returns the results as a list of objects of type T.
+    ///     The function retrieves all objects of type T from the database. It optionally includes related data specified by
+    ///     the includeProperties parameter
+    ///     This function first constructs a query based on the provided DbSet, and if includeProperties is not null or empty,
+    ///     it iterates through the properties specified in the parameter and includes them in the query using the Include
+    ///     method.
+    ///     Finally, it executes the query and returns the results as a list of objects of type T.
     /// </summary>
     /// <param name="filter"></param>
     /// <param name="includeProperties"></param>
@@ -60,20 +60,24 @@ public class Repository<T> : IRepository<T> where T : class
     {
         IQueryable<T> query = _dbSet;
 
-        if (filter != null)
-        {
-            query = query.Where(filter);
-        }
+        if (filter != null) query = query.Where(filter);
 
         if (!string.IsNullOrEmpty(includeProperties))
-        {
-            foreach (var property in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
+            foreach (var property in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 query = query.Include(property);
-            }
-        }
 
         return await query.ToListAsync();
+    }
+
+    public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, string? includeProperties = null)
+    {
+        var query = _dbSet.Where(predicate);
+
+        if (!string.IsNullOrEmpty(includeProperties))
+            foreach (var includeProp in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                query = query.Include(includeProp);
+
+        return await query.FirstOrDefaultAsync();
     }
 
     public void Remove(T entity)
@@ -85,5 +89,4 @@ public class Repository<T> : IRepository<T> where T : class
     {
         _dbSet.RemoveRange(entities);
     }
-    
 }

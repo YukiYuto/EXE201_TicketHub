@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
 using TicketHub.DataAccess.IRepository;
+using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Services.IService;
 using TicketHub.Utility.Constants;
@@ -188,96 +189,84 @@ public class CartService : ICartService
         }
     }*/
 
-    /*public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
+    public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
     {
         try
         {
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
-            {
-                return new ResponseDto()
+                return new ResponseDto
                 {
                     Message = "User was not found",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
-            }
 
-            var ticket = await _unitOfWork.TicketRepository.GetAsync(x => x.TicketId == addToCartDto.TicketId);
-            if (ticket == null)
-            {
-                return new ResponseDto()
+            var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == userId);
+            if (customer == null)
+                return new ResponseDto
                 {
-                    Message = "Ticket was not found",
+                    Message = "Customer was not found",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
-            }
 
-            if (ticket.UserId == userId)
-            {
+            var ticketTemplate = await _unitOfWork.TicketTemplateRepository
+                .GetAsync(t => t.TicketTemplateId == addToCartDto.TicketTemplateId);
+            if (ticketTemplate == null)
                 return new ResponseDto
                 {
-                    Message = "You cannot purchase your own ticket.",
+                    Message = "Ticket template not found",
                     IsSuccess = false,
-                    StatusCode = 400,
+                    StatusCode = 404,
                     Result = null
                 };
-            }
 
             // Lấy giỏ hàng của người dùng
-            var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId);
+            var cart = await _unitOfWork.CartRepository.GetAsync(x => x.CustomerId == customer.CustomerId);
 
             // Nếu giỏ hàng không tồn tại thì tạo giỏ hàng mới
             if (cart == null)
             {
-                cart = new Cart()
+                cart = new Cart
                 {
                     CartId = Guid.NewGuid(),
-                    UserId = userId,
-                    TotalAmount = 0
+                    CustomerId = customer.CustomerId
                 };
                 await _unitOfWork.CartRepository.AddAsync(cart);
                 await _unitOfWork.SaveAsync();
             }
 
-            // Kiểm tra xem vé đã có trong giỏ hay chưa
-            var cartItem = await _unitOfWork.CartItemRepository.GetAsync(x =>
-                x.TicketId == ticket.TicketId && x.CartId == cart.CartId);
+            var cartItem = await _unitOfWork.CartItemRepository.GetAsync(ci =>
+                ci.CartId == cart.CartId && ci.TicketTemplateId == ticketTemplate.TicketTemplateId);
+
             if (cartItem != null)
             {
-                return new ResponseDto()
+                cartItem.Quantity += addToCartDto.Quantity;
+                _unitOfWork.CartItemRepository.Update(cartItem);
+            }
+            else
+            {
+                cartItem = new CartItem
                 {
-                    IsSuccess = true,
-                    Result = null,
-                    StatusCode = 200,
-                    Message = "A ticket already exists in the cart."
+                    CartItemId = Guid.NewGuid(),
+                    CartId = cart.CartId,
+                    TicketTemplateId = ticketTemplate.TicketTemplateId,
+                    Quantity = addToCartDto.Quantity
                 };
+
+                await _unitOfWork.CartItemRepository.AddAsync(cartItem);
             }
 
-            // Cập nhật tổng số tiền trong giỏ hàng
-            cart.TotalAmount += ticket.TicketPrice;
-            _unitOfWork.CartRepository.Update(cart);
-
-            // Tạo và thêm item vào giỏ hàng
-            var newCartItem = new CartItem()
-            {
-                CartId = cart.CartId,
-                CartItemId = Guid.NewGuid(),
-                TicketId = ticket.TicketId,
-                Status = "1"
-            };
-
-            await _unitOfWork.CartItemRepository.AddAsync(newCartItem);
             await _unitOfWork.SaveAsync();
 
             // Chuyển đổi `cart` sang `CartDto` để tránh vòng lặp khi tuần tự hóa
-            var cartDto = new CartDto
+            /*var cartDto = new CartDto
             {
                 CartId = cart.CartId,
-                UserId = cart.UserId,
+                CustomerId = cart.CustomerId,
                 TotalAmount = cart.TotalAmount,
                 CartItemsDtos = cart.CartItems?.Select(item => new CartItemDto
                 {
@@ -287,19 +276,19 @@ public class CartService : ICartService
                     TicketPrice = ticket.TicketPrice,
                     Status = item.Status
                 }).ToList()!
-            };
+            };*/
 
             return new ResponseDto
             {
                 Message = "Ticket added to cart successfully.",
                 IsSuccess = true,
-                StatusCode = 200,
-                Result = cartDto
+                StatusCode = 200
+                //Result = cartDto
             };
         }
         catch (Exception e)
         {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "An error occurred while adding the ticket to the cart: " + e.Message,
                 IsSuccess = false,
@@ -307,7 +296,7 @@ public class CartService : ICartService
                 Result = null
             };
         }
-    }*/
+    }
 
     /*public async Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId)
     {

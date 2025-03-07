@@ -19,6 +19,7 @@ public class Ticket
     [StringLength(50)] public Guid CustomerId { get; set; }
     [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
 
+    [StringLength(500)] public string TicketDescription { get; set; } = null!;
     public bool IsFromExternal { get; set; } = false;
     public bool IsVisible { get; set; } = true;
 

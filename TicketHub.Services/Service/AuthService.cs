@@ -1,7 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -11,7 +10,6 @@ using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Authentication;
 using TicketHub.Models.DTO.Authentication.Google;
 using TicketHub.Models.DTO.Email;
-using TicketHub.Models.DTO.Image;
 using TicketHub.Services.IService;
 using TicketHub.Utility.Constants;
 
@@ -83,9 +81,8 @@ public class AuthService : IAuthService
             FullName = signUpCustomerDto.FullName,
             Address = signUpCustomerDto.Address,
             Country = signUpCustomerDto.Country,
-            //BirthDate = signUpCustomerDto.BirthDate,
+            BirthDate = signUpCustomerDto.BirthDate,
             PhoneNumber = signUpCustomerDto.PhoneNumber,
-            //CCCD = signUpCustomerDto.CCCD,
             AvatarUrl = "",
             LockoutEnabled = false
         };
@@ -103,7 +100,14 @@ public class AuthService : IAuthService
                 Result = signUpCustomerDto
             };
 
-        var user = newUser;
+        var customer = new Customer
+        {
+            CustomerId = Guid.NewGuid(),
+            UserId = newUser.Id,
+            CCCD = signUpCustomerDto.CCCD,
+            Gender = signUpCustomerDto.Gender
+        };
+
         var isRoleExist = await _roleManager.RoleExistsAsync(StaticUserRoles.Member);
 
         if (!isRoleExist) await _roleManager.CreateAsync(new IdentityRole(StaticUserRoles.Member));
@@ -120,7 +124,7 @@ public class AuthService : IAuthService
                 StatusCode = 500,
                 Result = signUpCustomerDto
             };
-
+        await _unitOfWork.CustomerRepository.AddAsync(customer);
         await _unitOfWork.SaveAsync();
 
         return new ResponseDto
@@ -163,10 +167,8 @@ public class AuthService : IAuthService
         {
             Email = signUpOrganizationDto.Email,
             UserName = signUpOrganizationDto.Email,
-            //OrganizationName = signUpOrganizationDto.OrganizationName,
             Address = signUpOrganizationDto.Address,
             Country = signUpOrganizationDto.Country,
-            //TaxId = signUpOrganizationDto.TaxId,
             PhoneNumber = signUpOrganizationDto.PhoneNumber,
             AvatarUrl = "",
             LockoutEnabled = false
@@ -185,7 +187,15 @@ public class AuthService : IAuthService
                 Result = signUpOrganizationDto
             };
 
-        var user = newUser;
+        var organizer = new Organizer
+        {
+            OrganizerId = Guid.NewGuid(),
+            UserId = newUser.Id,
+            OrganizationName = signUpOrganizationDto.OrganizationName,
+            TaxId = signUpOrganizationDto.TaxId
+        };
+
+
         var isRoleExist = await _roleManager.RoleExistsAsync(StaticUserRoles.Organization);
 
         if (!isRoleExist) await _roleManager.CreateAsync(new IdentityRole(StaticUserRoles.Organization));
@@ -203,6 +213,7 @@ public class AuthService : IAuthService
                 Result = signUpOrganizationDto
             };
 
+        await _unitOfWork.OrganizationRepository.AddAsync(organizer);
         await _unitOfWork.SaveAsync();
 
         return new ResponseDto
@@ -238,8 +249,6 @@ public class AuthService : IAuthService
                 StatusCode = 400
             };
 
-        var role = await _userManager.GetRolesAsync(user);
-
         if (!user.EmailConfirmed)
             return new ResponseDto
             {
@@ -258,12 +267,7 @@ public class AuthService : IAuthService
                 Result = null
             };
 
-        string accessToken;
-        if (role.Contains(StaticUserRoles.Organization))
-            accessToken = await _tokenService.GenerateJwtAccessTokenOrganizationAsync(user);
-        else
-            accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
-
+        var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user);
         var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
         await _tokenService.StoreRefreshToken(user.Id, refreshToken);
 
@@ -385,7 +389,7 @@ public class AuthService : IAuthService
         //!string.IsNullOrEmpty(user.CCCD);
 
         // Tạo Access Token và Refresh Token cho user
-        var accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user!);
+        var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user!);
         var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user!);
         await _tokenService.StoreRefreshToken(user!.Id, refreshToken);
 
@@ -442,32 +446,43 @@ public class AuthService : IAuthService
                 StatusCode = 404
             };
 
-        // 🔹 **Lấy danh sách role của user**
+
         var roles = await _userManager.GetRolesAsync(user);
 
-        // 🔹 **Kiểm tra nếu user là "Member"**
         if (roles.Contains(StaticUserRoles.Member))
         {
-            user.FullName = updateUserProfileDto.FullName;
-            user.AvatarUrl = updateUserProfileDto.AvatarUrl;
-            user.Country = updateUserProfileDto.Country;
-            //user.CCCD = updateUserProfileDto.CCCD;
-            user.Address = updateUserProfileDto.Address;
-            //user.BirthDate = updateUserProfileDto.BirthDate;
-            user.AvatarUrl = updateUserProfileDto.AvatarUrl;
+            var customer = await _unitOfWork.CustomerRepository.GetFirstOrDefaultAsync(c => c.UserId == userId);
+            if (customer == null)
+                return new ResponseDto { Message = "Customer profile not found", StatusCode = 404, IsSuccess = false };
+
+            user.FullName = updateUserProfileDto.FullName ?? user.FullName;
+            user.Address = updateUserProfileDto.Address ?? user.Address;
+            customer.CCCD = updateUserProfileDto.CCCD ?? customer.CCCD;
+            customer.Gender = updateUserProfileDto.Gender ?? customer.Gender;
+
+            _unitOfWork.CustomerRepository.Update(customer);
         }
 
-        // 🔹 **Kiểm tra nếu user là "Organizer"**
+
         if (roles.Contains(StaticUserRoles.Organization))
         {
-            //user.OrganizationName = updateUserProfileDto.OrganizationName;
-            //user.TaxId = updateUserProfileDto.TaxId;
-            user.AvatarUrl = updateUserProfileDto.AvatarUrl;
-            user.Country = updateUserProfileDto.Country;
-            user.Address = updateUserProfileDto.Address;
+            var organizer = await _unitOfWork.OrganizationRepository.GetFirstOrDefaultAsync(o => o.UserId == userId);
+            if (organizer == null)
+                return new ResponseDto { Message = "Organizer profile not found", StatusCode = 404, IsSuccess = false };
+
+            organizer.OrganizationName = updateUserProfileDto.OrganizationName ?? organizer.OrganizationName;
+            organizer.TaxId = updateUserProfileDto.TaxId ?? organizer.TaxId;
+
+            _unitOfWork.OrganizationRepository.Update(organizer);
         }
 
+        user.Address = updateUserProfileDto.Address ?? user.Address;
+        user.AvatarUrl = updateUserProfileDto.AvatarUrl ?? user.AvatarUrl;
+        user.Country = updateUserProfileDto.Country ?? user.Country;
         var updateResult = await _userManager.UpdateAsync(user);
+
+        await _unitOfWork.SaveAsync();
+
         if (!updateResult.Succeeded)
             return new ResponseDto
             {
@@ -477,12 +492,7 @@ public class AuthService : IAuthService
                 Result = updateResult.Errors
             };
 
-        string accessToken;
-        if (roles.Contains(StaticUserRoles.Organization))
-            accessToken = await _tokenService.GenerateJwtAccessTokenOrganizationAsync(user);
-        else
-            accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
-
+        var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user);
         var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
         await _tokenService.StoreRefreshToken(user.Id, refreshToken);
 
@@ -546,7 +556,7 @@ public class AuthService : IAuthService
                 };
 
             // Cấp mới access token
-            var newAccessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+            var newAccessToken = await _tokenService.GenerateJwtAccessTokenAsync(user);
 
             return new ResponseDto
             {
@@ -593,38 +603,29 @@ public class AuthService : IAuthService
                     Result = null
                 };
 
+            var customer = await _unitOfWork.CustomerRepository.GetFirstOrDefaultAsync(c => c.UserId == userId);
+            var organizer = await _unitOfWork.OrganizationRepository.GetFirstOrDefaultAsync(o => o.UserId == userId);
+
             // Lấy danh sách vai trò của user
             var roles = await _userManager.GetRolesAsync(userEntity);
 
-            GetUserDto userDto;
-
-            if (roles.Contains(StaticUserRoles.Organization))
-                // Tạo DTO cho Organization
-                userDto = new GetUserDto
-                {
-                    Id = userEntity.Id,
-                    OrganizationName = user.Claims.FirstOrDefault(x => x.Type == "OrganizationName")?.Value,
-                    Email = userEntity.Email!,
-                    PhoneNumber = userEntity.PhoneNumber!,
-                    Address = user.Claims.FirstOrDefault(x => x.Type == "Address")?.Value,
-                    ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
-                    //TaxId = userEntity.TaxId!,
-                    Roles = roles.ToList()
-                };
-            else
-                // Tạo DTO cho User thông thường
-                userDto = new GetUserDto
-                {
-                    Id = userEntity.Id,
-                    FullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value,
-                    Email = userEntity.Email!,
-                    PhoneNumber = userEntity.PhoneNumber!,
-                    Address = user.Claims.FirstOrDefault(x => x.Type == "Address")?.Value,
-                    ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
-                    UserName = userEntity.UserName!,
-                    //CCCD = userEntity.CCCD!,
-                    Roles = roles.ToList()
-                };
+            var userDto = new GetUserDto
+            {
+                Id = userEntity.Id,
+                FullName = userEntity.FullName ?? "",
+                UserName = userEntity.UserName!,
+                Country = userEntity.Country ?? "",
+                BirthDate = userEntity.BirthDate,
+                OrganizationName = organizer?.OrganizationName ?? "",
+                Email = userEntity.Email!,
+                PhoneNumber = userEntity.PhoneNumber!,
+                Address = userEntity.Address,
+                CCCD = customer?.CCCD ?? "",
+                Gender = customer?.Gender ?? "Unknown",
+                TaxId = organizer?.TaxId ?? "",
+                ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
+                Roles = roles.ToList()
+            };
 
             return new ResponseDto
             {
@@ -863,7 +864,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal User)
+    /*public async Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal User)
     {
         try
         {
@@ -919,7 +920,7 @@ public class AuthService : IAuthService
             if (!string.IsNullOrEmpty(existingRefreshToken)) await _tokenService.DeleteRefreshToken(user.Id);
 
             // 🔹 Tạo Access Token & Refresh Token mới
-            var accessToken = await _tokenService.GenerateJwtAccessTokenCustomerAsync(user);
+            var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user);
             var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
             await _tokenService.StoreRefreshToken(user.Id, refreshToken);
 
@@ -945,5 +946,5 @@ public class AuthService : IAuthService
                 StatusCode = 500
             };
         }
-    }
+    }*/
 }

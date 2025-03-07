@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Services.IService;
 
@@ -13,35 +14,55 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly IRedisService _redisService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public TokenService(UserManager<ApplicationUser> userManager, IConfiguration configuration,
-        IRedisService redisService)
+        IRedisService redisService, IUnitOfWork unitOfWork)
     {
         _userManager = userManager;
         _configuration = configuration;
         _redisService = redisService;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<string> GenerateJwtAccessTokenCustomerAsync(ApplicationUser user)
+    public async Task<string> GenerateJwtAccessTokenAsync(ApplicationUser user)
     {
+        var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == user.Id);
+        var organizer = await _unitOfWork.OrganizationRepository.GetAsync(o => o.UserId == user.Id);
+
         var userRoles = await _userManager.GetRolesAsync(user);
         var authClaims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email),
-            new("FullName", user.FullName),
-            new("PhoneNumber", user.PhoneNumber),
-            new("Address", user.Address)
-            //new Claim("CCCD", user.CCCD)
+            new(ClaimTypes.Name, user.UserName ?? ""),
+            new(ClaimTypes.Email, user.Email ?? ""),
+            new("FullName", user.FullName ?? ""),
+            new("PhoneNumber", user.PhoneNumber ?? ""),
+            new("Address", user.Address ?? "")
         };
+
+        // Nếu là Customer -> Thêm thông tin vào claims (Bảo vệ khỏi null)
+        if (customer != null)
+        {
+            authClaims.Add(new Claim("CCCD", customer.CCCD ?? ""));
+            authClaims.Add(new Claim("Gender", customer.Gender ?? ""));
+            authClaims.Add(new Claim("CustomerId", customer.CustomerId.ToString()));
+        }
+
+        // Nếu là Organizer -> Thêm thông tin vào claims (Bảo vệ khỏi null)
+        if (organizer != null)
+        {
+            authClaims.Add(new Claim("OrganizationName", organizer.OrganizationName ?? ""));
+            authClaims.Add(new Claim("TaxId", organizer.TaxId ?? ""));
+            authClaims.Add(new Claim("OrganizerId", organizer.OrganizerId.ToString()));
+        }
 
         // Thêm role của người dùng vào claims
         foreach (var role in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, role));
 
         // Tạo security key và signing credentials
-        var authSecret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? string.Empty));
+        var authSecret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? ""));
         var signingCredentials = new SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256);
 
         // Tạo đối tượng JWT token
@@ -50,43 +71,6 @@ public class TokenService : ITokenService
             _configuration["JWT:ValidAudience"],
             notBefore: DateTime.Now,
             expires: DateTime.Now.AddMinutes(60),
-            claims: authClaims,
-            signingCredentials: signingCredentials
-        );
-
-        // Tạo JWT access token
-        var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenObject);
-
-        return accessToken;
-    }
-
-    public async Task<string> GenerateJwtAccessTokenOrganizationAsync(ApplicationUser user)
-    {
-        var userRoles = await _userManager.GetRolesAsync(user);
-        var authClaims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email),
-            //new("OrganizationName", user.OrganizationName),
-            //new("TaxId", user.TaxId),
-            new("PhoneNumber", user.PhoneNumber),
-            new("Address", user.Address)
-        };
-
-        // Thêm role của người dùng vào claims
-        foreach (var role in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, role));
-
-        // Tạo security key và signing credentials
-        var authSecret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? string.Empty));
-        var signingCredentials = new SigningCredentials(authSecret, SecurityAlgorithms.HmacSha256);
-
-        // Tạo đối tượng JWT token
-        var tokenObject = new JwtSecurityToken(
-            _configuration["JWT:ValidIssuer"],
-            _configuration["JWT:ValidAudience"],
-            notBefore: DateTime.Now,
-            expires: DateTime.Now.AddMinutes(5),
             claims: authClaims,
             signingCredentials: signingCredentials
         );

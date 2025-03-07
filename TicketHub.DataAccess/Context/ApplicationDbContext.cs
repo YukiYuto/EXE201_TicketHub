@@ -29,7 +29,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Orders> Orders { get; set; }
 
-    //public DbSet<OrderTicket> OrderTickets { get; set; }
+    public DbSet<OrderDetail> OrderDetails { get; set; }
+
     //public DbSet<ChatRoom> ChatRooms { get; set; }
     //public DbSet<Message> Messages { get; set; }
     public DbSet<Payment> Payments { get; set; }
