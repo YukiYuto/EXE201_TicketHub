@@ -11,6 +11,7 @@ public class CartItem
     public Guid CartId { get; set; }
 
     public int Quantity { get; set; }
+    public string Status { get; set; }
     [ForeignKey("CartId")] public virtual Cart Cart { get; set; } = null!;
 
     [ForeignKey("TicketTemplateId")] public virtual TicketTemplate TicketTemplate { get; set; } = null!;

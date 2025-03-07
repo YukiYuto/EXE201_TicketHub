@@ -8,9 +8,10 @@ public interface ICartService
     Task<ResponseDto> GetAllCarts(ClaimsPrincipal User, int pageNumber = 1, int pageSize = 10);
 
     Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto);
-    /*Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId);
-    Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User);
+    Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid cartItemId);
 
-    Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId);
-    Task<ResponseDto> Checkout(ClaimsPrincipal User, CheckoutDto checkoutDto);*/
+    Task<ResponseDto> CheckoutCart(ClaimsPrincipal User, CheckoutDto checkoutDto);
+
+    //Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId);
+    Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User);
 }

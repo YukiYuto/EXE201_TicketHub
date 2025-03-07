@@ -6,8 +6,7 @@ public class CreateEventDto
     public string EventDescription { get; set; } = null!;
     public DateTime EventDate { get; set; }
 
-    public string City { get; set; } = null!;
-    public string District { get; set; } = null!;
-    public string Address { get; set; } = null!;
+    public string Location { get; set; } = null!;
+
     public string? EventImage { get; set; }
 }

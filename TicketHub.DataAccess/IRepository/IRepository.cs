@@ -11,4 +11,5 @@ public interface IRepository<T> where T : class
     Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, string? includeProperties = null);
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
+    void UpdateRange(IEnumerable<T> entities);
 }

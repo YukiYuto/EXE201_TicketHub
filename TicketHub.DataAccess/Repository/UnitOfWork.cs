@@ -20,7 +20,7 @@ public class UnitOfWork : IUnitOfWork
         CartItemRepository = new CartItemRepository(_context);
         CategoryRepository = new CategoryRepository(_context);
         OrderRepository = new OrderRepository(_context);
-        //OrderTicketRepository = new OrderTicketRepository(_context);
+        OrderDetailRepository = new OrderDetailRepository(_context);
         PaymentRepository = new PaymentRepository(_context);
         TransactionRepository = new TransactionRepository(_context);
         CustomerRepository = new CustomerRepository(_context);
@@ -39,7 +39,7 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryRepository CategoryRepository { get; set; }
 
     public IOrderRepository OrderRepository { get; set; }
-    //public IOrderTicketRepository OrderTicketRepository { get; set; }
+    public IOrderDetailRepository OrderDetailRepository { get; set; }
 
     public IPaymentRepository PaymentRepository { get; set; }
     public ITransactionRepository TransactionRepository { get; set; }

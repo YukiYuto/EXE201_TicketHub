@@ -6,7 +6,7 @@ namespace TicketHub.Services.IService;
 
 public interface IEventService
 {
-    /*Task<ResponseDto> GetEvents
+    Task<ResponseDto> GetEvents
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -20,5 +20,5 @@ public interface IEventService
     Task<ResponseDto> CreateEvent(ClaimsPrincipal user, CreateEventDto createEventDto);
     Task<ResponseDto> UpdateEvent(ClaimsPrincipal user, UpdateEventDto updateEventDto);
     Task<ResponseDto> DeleteEvent(ClaimsPrincipal user, Guid eventId);
-    Task<ResponseDto> SearchEvent(ClaimsPrincipal user, string eventName);*/
+    Task<ResponseDto> SearchEvent(ClaimsPrincipal user, string eventName);
 }

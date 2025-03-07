@@ -10,8 +10,8 @@ namespace TicketHub.Services.Service;
 
 public class EventService : IEventService
 {
+    private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
-    private IMapper _mapper;
 
     public EventService(IUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -19,7 +19,7 @@ public class EventService : IEventService
         _mapper = mapper;
     }
 
-    /*public async Task<ResponseDto> GetEvents
+    public async Task<ResponseDto> GetEvents
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -36,30 +36,24 @@ public class EventService : IEventService
 
         // Kiểm tra nếu danh sách events là null hoặc rỗng
         if (!allEvents.Any())
-        {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "There are no events",
                 IsSuccess = true,
                 StatusCode = 404,
                 Result = null
             };
-        }
 
         // Kiểm tra quyền của người dùng  
-        bool isStaff = user.IsInRole("STAFF");
+        var isStaff = user.IsInRole("STAFF");
 
         // Lọc danh sách sự kiện dựa vào quyền  
-        if (!isStaff)
-        {
-            allEvents = allEvents.Where(e => e.Status == 1);
-        }
+        if (!isStaff) allEvents = allEvents.Where(e => e.Status == 1);
 
         var listEvents = allEvents.ToList();
 
         // Filter Query
         if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
-        {
             switch (filterOn.Trim().ToLower())
             {
                 case "eventname":
@@ -67,33 +61,13 @@ public class EventService : IEventService
                         x.EventName.Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
                     break;
                 case "eventdate":
-                    if (DateTime.TryParse(filterQuery, out DateTime filterDate))
-                    {
+                    if (DateTime.TryParse(filterQuery, out var filterDate))
                         listEvents = listEvents.Where(x =>
                                 x.EventDate.Date >= filterDate.Date && x.EventDate.Date < filterDate.Date.AddDays(1))
                             .ToList();
-                    }
 
-                    break;
-                case "city":
-                    listEvents = listEvents.Where(x =>
-                        x.City.Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
-
-                    break;
-                case "district":
-                    listEvents = listEvents.Where(x =>
-                        x.District.Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
-
-                    break;
-                case "address":
-                    listEvents = listEvents.Where(x =>
-                        x.Address.Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
-
-                    break;
-                default:
                     break;
             }
-        }
 
         if (!string.IsNullOrEmpty(sortBy))
         {
@@ -135,20 +109,18 @@ public class EventService : IEventService
         }
 
         // Chuyển đổi danh sách sự kiện thành DTO
-        var eventDto = listEvents.Select(eventItem => new GetEventDto()
+        var eventDto = listEvents.Select(eventItem => new GetEventDto
         {
             EventId = eventItem.EventId,
             EventName = eventItem.EventName,
             EventDate = eventItem.EventDate,
+            Location = eventItem.Location,
             EventDescription = eventItem.EventDescription,
-            City = eventItem.City,
-            District = eventItem.District,
-            Address = eventItem.Address,
             Status = eventItem.Status,
             EventImage = eventItem.EventImage
         }).ToList();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Get Events successfully",
             IsSuccess = true,
@@ -161,7 +133,6 @@ public class EventService : IEventService
     {
         var eventIDs = await _unitOfWork.EventRepository.GetById(eventId);
         if (eventIDs == null)
-        {
             return new ResponseDto
             {
                 Message = "Event not found",
@@ -169,7 +140,6 @@ public class EventService : IEventService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         var eventDto = _mapper.Map<GetEventDto>(eventIDs);
 
@@ -184,15 +154,13 @@ public class EventService : IEventService
 
     public async Task<ResponseDto> CreateEvent(ClaimsPrincipal user, CreateEventDto createEventDto)
     {
-        Event newEvent = new Event()
+        var newEvent = new Event
         {
             EventName = createEventDto.EventName,
             EventDescription = createEventDto.EventDescription,
             EventDate = createEventDto.EventDate,
-            City = createEventDto.City,
-            District = createEventDto.District,
-            Address = createEventDto.Address,
             CreatedBy = user.Identity!.Name,
+            Location = createEventDto.Location,
             UpdatedBy = "",
             CreatedTime = DateTime.Now,
             UpdatedTime = null,
@@ -216,7 +184,6 @@ public class EventService : IEventService
     {
         var eventId = await _unitOfWork.EventRepository.GetAsync(x => x.EventId == updateEventDto.EventId);
         if (eventId == null)
-        {
             return new ResponseDto
             {
                 Message = "Event not found",
@@ -224,16 +191,13 @@ public class EventService : IEventService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         //update location
         eventId.EventName = updateEventDto.EventName;
         eventId.EventDescription = updateEventDto.EventDescription;
         eventId.EventDate = updateEventDto.EventDate;
-        eventId.City = updateEventDto.City;
-        eventId.District = updateEventDto.District;
-        eventId.Address = updateEventDto.Address;
-        eventId.UpdatedBy = user.Identity.Name;
+        eventId.Location = updateEventDto.Location;
+        eventId.UpdatedBy = user.Identity!.Name;
         eventId.UpdatedTime = DateTime.UtcNow;
         eventId.EventImage = updateEventDto.EventImage;
 
@@ -255,7 +219,6 @@ public class EventService : IEventService
     {
         var events = await _unitOfWork.EventRepository.GetAsync(x => x.EventId == eventId);
         if (events == null)
-        {
             return new ResponseDto
             {
                 Message = "Location not found",
@@ -263,7 +226,6 @@ public class EventService : IEventService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         events.Status = 0;
         events.UpdatedBy = user.Identity.Name;
@@ -273,7 +235,7 @@ public class EventService : IEventService
         _unitOfWork.EventRepository.Update(events);
         var save = await _unitOfWork.SaveAsync();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Events delete successfully",
             Result = events,
@@ -281,12 +243,11 @@ public class EventService : IEventService
             StatusCode = 201
         };
     }
-    
+
     public async Task<ResponseDto> SearchEvent(ClaimsPrincipal user, string eventName)
     {
         var events = await _unitOfWork.EventRepository.GetAsync(x => x.EventName.Contains(eventName));
         if (events == null)
-        {
             return new ResponseDto
             {
                 Message = "Event not found",
@@ -294,7 +255,6 @@ public class EventService : IEventService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         var eventDto = _mapper.Map<GetEventDto>(events);
 
@@ -305,5 +265,5 @@ public class EventService : IEventService
             IsSuccess = true,
             StatusCode = 201
         };
-    }*/
+    }
 }

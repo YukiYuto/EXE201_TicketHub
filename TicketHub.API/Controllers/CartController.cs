@@ -38,6 +38,18 @@ public class CartController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
+    [HttpDelete]
+    [Route("RemoveFromCart")]
+    public async Task<IActionResult> RemoveFromCart([FromQuery] Guid ticketId)
+    {
+        var responseDto = await _cartService.RemoveFromCart
+        (
+            User,
+            ticketId
+        );
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
     /*[HttpGet("admin/cart-by-user")]
     [Authorize(Roles = StaticUserRoles.Admin)]
     public async Task<ActionResult<ResponseDto>> GetCartByUserId(string userId)
