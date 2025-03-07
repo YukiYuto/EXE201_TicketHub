@@ -3,26 +3,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TicketHub.Models.Domain;
 
-public class ResaleListing
+public class ResaleListing : BaseEntity<string, string, string>
 {
-    [Key]
-    public Guid ListingId { get; set; }
+    [Key] public Guid ResaleListingId { get; set; }
 
     public Guid TicketId { get; set; }
 
-    [ForeignKey("TicketId")]
-    public virtual Ticket Ticket { get; set; } = null!;
+    [ForeignKey("TicketId")] public virtual Ticket Ticket { get; set; } = null!;
 
-    public string SellerId { get; set; } = null!;
+    public Guid CustomerId { get; set; }
 
-    [ForeignKey("SellerId")]
-    public virtual ApplicationUser Seller { get; set; } = null!;
+    [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
 
-    public double Price { get; set; }  // Giá mà người bán đặt
+    public double Price { get; set; }
 
-    public bool IsNegotiable { get; set; } = true; // Có thể thương lượng hay không
+    public bool NegotiationStatus { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Ngày tạo listing
-
-    public bool IsSold { get; set; } = false; // Vé đã được mua chưa?
+    public bool IsSold { get; set; } = false;
 }

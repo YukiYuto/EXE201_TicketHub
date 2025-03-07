@@ -84,10 +84,8 @@ namespace TicketHub.API
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]!))
                 };
             });
-            
-            // Thêm dịch vụ SignalR
-            builder.Services.AddSignalR();
-            
+
+
             // Register services from Extensions
             builder.Services.RegisterServices(builder.Configuration);
 

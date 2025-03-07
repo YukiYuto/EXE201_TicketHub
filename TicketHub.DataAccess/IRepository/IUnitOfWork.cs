@@ -7,8 +7,10 @@ public interface IUnitOfWork
     ICategoryRepository CategoryRepository { get; }
     ICartRepository CartRepository { get; }
     ICartItemRepository CartItemRepository { get; }
+
     IOrderRepository OrderRepository { get; }
-    IOrderTicketRepository OrderTicketRepository { get; }
+
+    //IOrderTicketRepository OrderTicketRepository { get; }
     IPaymentRepository PaymentRepository { get; }
     ITransactionRepository TransactionRepository { get; }
     IChatRoomRepository ChatRoomRepository { get; }
