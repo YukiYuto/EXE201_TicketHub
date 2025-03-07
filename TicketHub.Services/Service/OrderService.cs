@@ -28,7 +28,7 @@ public class OrderService : IOrderService
     }
 
 
-    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
+    /*public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
         string? sortBy, int pageNumber = 1, int pageSize = 10)
     {
         IEnumerable<Orders> allOrders = null!;
@@ -264,5 +264,5 @@ public class OrderService : IOrderService
             IsSuccess = true,
             StatusCode = 200
         };
-    }
+    }*/
 }

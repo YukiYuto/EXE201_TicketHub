@@ -18,7 +18,7 @@ namespace TicketHub.API.Controllers
             _orderService = orderService;
         }
 
-        [HttpGet]
+        /*[HttpGet]
         public async Task<ActionResult<ResponseDto>> GetOders
         (
             [FromQuery] string? filterOn,
@@ -59,6 +59,6 @@ namespace TicketHub.API.Controllers
         {
             var responseDto = await _orderService.DeleteOrder(User, orderId);
             return StatusCode(responseDto.StatusCode, responseDto);
-        }
+        }*/
     }
 }

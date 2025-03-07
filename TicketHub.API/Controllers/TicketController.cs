@@ -18,7 +18,7 @@ namespace TicketHub.API.Controllers
             _ticketService = ticketService;
         }
 
-        [HttpGet]
+        /*[HttpGet]
         public async Task<ActionResult<ResponseDto>> GetTickets(
             [FromQuery] string? filterOn,
             [FromQuery] string? filterQuery,
@@ -134,6 +134,6 @@ namespace TicketHub.API.Controllers
             var responseDto = await _ticketService.ValidateAndUpdateTicket(ticketId, serialNumber);
 
             return StatusCode(responseDto.StatusCode, responseDto);
-        }
+        }*/
     }
 }

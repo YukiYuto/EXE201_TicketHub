@@ -30,13 +30,13 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
         _context.Tickets.UpdateRange(tickets);
     }
 
-    public async Task<IEnumerable<Ticket>> GetAllWithEventAndLocationAsync()
+    /*public async Task<IEnumerable<Ticket>> GetAllWithEventAndLocationAsync()
     {
         return await _context.Tickets
             .Include(t => t.Event)
             .Include(ticket => ticket.Category)
             .ToListAsync();
-    }
+    }*/
 
     public async Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter)
     {

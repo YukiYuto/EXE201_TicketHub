@@ -26,7 +26,7 @@ public class TicketService : ITicketService
         _firebaseService = firebaseService;
     }
 
-    public async Task<ResponseDto> GetTickets
+    /*public async Task<ResponseDto> GetTickets
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -581,5 +581,5 @@ public class TicketService : ITicketService
             IsSuccess = true,
             StatusCode = 200
         };
-    }
+    }*/
 }

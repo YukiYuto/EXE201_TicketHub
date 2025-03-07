@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
 using TicketHub.DataAccess.IRepository;
-using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Services.IService;
 using TicketHub.Utility.Constants;
@@ -10,8 +9,8 @@ namespace TicketHub.Services.Service;
 
 public class CartService : ICartService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CartService(IUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -24,31 +23,27 @@ public class CartService : ICartService
     {
         // Kiểm tra quyền admin
         if (!User.IsInRole(StaticUserRoles.Admin))
-        {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "You are not authorized to view all carts",
                 IsSuccess = false,
                 StatusCode = 403
             };
-        }
 
         // Lấy tất cả `Cart`
         var allCarts = await _unitOfWork.CartRepository.GetAllAsync(includeProperties: "CartItems");
 
         if (!allCarts.Any())
-        {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "No carts found",
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         // Tính tổng số trang (TotalPages)
-        int totalCarts = allCarts.Count();
-        int totalPages = (int)Math.Ceiling((double)totalCarts / pageSize);
+        var totalCarts = allCarts.Count();
+        var totalPages = (int)Math.Ceiling((double)totalCarts / pageSize);
 
         // Lấy dữ liệu theo trang (Pagination)
         var paginatedCarts = allCarts
@@ -60,13 +55,13 @@ public class CartService : ICartService
         // Chuyển đổi dữ liệu
         var cartDtos = paginatedCarts.Select(c => new
         {
-            CartId = c.CartId,
-            UserId = c.UserId, // Chủ sở hữu giỏ hàng
-            TotalAmount = c.TotalAmount, // Tổng tiền giỏ hàng
+            c.CartId,
+            // UserId = c.UserId, // Chủ sở hữu giỏ hàng
+            // TotalAmount = c.TotalAmount, // Tổng tiền giỏ hàng
             TotalTickets = c.CartItems.Count // Số lượng vé trong giỏ hàng
         }).ToList();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Get all carts successfully",
             IsSuccess = true,
@@ -83,7 +78,7 @@ public class CartService : ICartService
     }
 
     //admin
-    public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
+    /*public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
     {
         // Kiểm tra quyền admin
         var isAdmin = User.IsInRole(StaticUserRoles.Admin);
@@ -108,7 +103,7 @@ public class CartService : ICartService
                 StatusCode = 404
             };
         }
-        
+
         // Chuyển đổi sang DTO
         var cartDto = new CartDto
         {
@@ -130,9 +125,9 @@ public class CartService : ICartService
             StatusCode = 200,
             Result = cartDto
         };
-    }
+    }*/
 
-    public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User)
+    /*public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal User)
     {
         try
         {
@@ -191,9 +186,9 @@ public class CartService : ICartService
                 StatusCode = 500
             };
         }
-    }
+    }*/
 
-    public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
+    /*public async Task<ResponseDto> AddToCart(ClaimsPrincipal User, AddToCartDTO addToCartDto)
     {
         try
         {
@@ -232,10 +227,10 @@ public class CartService : ICartService
                 };
             }
 
-            // Lấy giỏ hàng của người dùng  
+            // Lấy giỏ hàng của người dùng
             var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId);
 
-            // Nếu giỏ hàng không tồn tại thì tạo giỏ hàng mới  
+            // Nếu giỏ hàng không tồn tại thì tạo giỏ hàng mới
             if (cart == null)
             {
                 cart = new Cart()
@@ -248,7 +243,7 @@ public class CartService : ICartService
                 await _unitOfWork.SaveAsync();
             }
 
-            // Kiểm tra xem vé đã có trong giỏ hay chưa  
+            // Kiểm tra xem vé đã có trong giỏ hay chưa
             var cartItem = await _unitOfWork.CartItemRepository.GetAsync(x =>
                 x.TicketId == ticket.TicketId && x.CartId == cart.CartId);
             if (cartItem != null)
@@ -262,11 +257,11 @@ public class CartService : ICartService
                 };
             }
 
-            // Cập nhật tổng số tiền trong giỏ hàng  
+            // Cập nhật tổng số tiền trong giỏ hàng
             cart.TotalAmount += ticket.TicketPrice;
             _unitOfWork.CartRepository.Update(cart);
 
-            // Tạo và thêm item vào giỏ hàng  
+            // Tạo và thêm item vào giỏ hàng
             var newCartItem = new CartItem()
             {
                 CartId = cart.CartId,
@@ -312,9 +307,9 @@ public class CartService : ICartService
                 Result = null
             };
         }
-    }
+    }*/
 
-    public async Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId)
+    /*public async Task<ResponseDto> RemoveFromCart(ClaimsPrincipal User, Guid TicketId)
     {
         var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -468,5 +463,5 @@ public class CartService : ICartService
                 StatusCode = 500
             };
         }
-    }
+    }*/
 }

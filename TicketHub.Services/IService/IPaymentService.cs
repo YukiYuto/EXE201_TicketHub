@@ -6,7 +6,7 @@ namespace TicketHub.Services.IService;
 
 public interface IPaymentService
 {
-    Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink);
+    /*Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink);
     Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPayment);
-    Task<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId, string cancellationReason);
+    Task<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId, string cancellationReason);*/
 }

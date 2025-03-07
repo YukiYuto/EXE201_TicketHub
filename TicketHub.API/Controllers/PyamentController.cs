@@ -16,7 +16,7 @@ public class PaymentController : ControllerBase
         _paymentService = paymentService;
     }
 
-    [HttpPost("create-payment-link")]
+    /*[HttpPost("create-payment-link")]
     public async Task<ActionResult<ResponseDto>> CreatePaymentLink([FromBody] CreatePaymentLinkDto createPaymentLinkDTO)
     {
         var responseDto = await _paymentService.CreatePayOsPaymentLink(User, createPaymentLinkDTO);
@@ -30,5 +30,5 @@ public class PaymentController : ControllerBase
         var responseDto = await _paymentService.ConfirmPayOsTransaction(confirmPaymentDTO);
 
         return StatusCode(responseDto.StatusCode, responseDto);
-    }
+    }*/
 }

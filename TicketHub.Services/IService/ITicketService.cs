@@ -6,7 +6,7 @@ namespace TicketHub.Services.IService;
 
 public interface ITicketService
 {
-    Task<ResponseDto> GetTickets
+    /*Task<ResponseDto> GetTickets
     (
         ClaimsPrincipal user,
         string? filterOn,
@@ -26,5 +26,5 @@ public interface ITicketService
     Task<ResponseDto> AcceptTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> RejectTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> GenerateQRCode(Guid ticketId, string serialNumber);
-    Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, string serialNumber);
+    Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, string serialNumber);*/
 }

@@ -6,9 +6,7 @@ namespace TicketHub.Models.Domain;
 public class Cart
 {
     [Key] public Guid CartId { get; set; }
-    public string UserId { get; set; } = null!;
-    [ForeignKey("UserId")]public virtual ApplicationUser ApplicationUser { get; set; } = null!;
-    public double TotalAmount { get; set; }
-
+    public Guid CustomerId { get; set; }
+    [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 }
