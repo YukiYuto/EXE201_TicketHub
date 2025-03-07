@@ -5,17 +5,12 @@ namespace TicketHub.Models.Domain;
 
 public class CartItem
 {
-    [Key]
-    public Guid CartItemId { get; set; }
+    [Key] public Guid CartItemId { get; set; }
 
-    public Guid TicketId { get; set; }
+    public Guid TicketTemplateId { get; set; }
     public Guid CartId { get; set; }
 
-    [ForeignKey("CartId")]
-    public virtual Cart Cart { get; set; } = null!;
+    [ForeignKey("CartId")] public virtual Cart Cart { get; set; } = null!;
 
-    [ForeignKey("TicketId")]
-    public virtual Ticket Ticket { get; set; } = null!; 
-    public string Status { get; set; } = null!;
-    
+    [ForeignKey("TicketTemplateId")] public virtual TicketTemplate TicketTemplate { get; set; } = null!;
 }

@@ -5,10 +5,10 @@ namespace TicketHub.Models.Domain;
 
 public class Orders
 {
-    [Key] public long OrderNumber { get; set; }
-    [StringLength(450)] public string UserId { get; set; } = null!;
-    [ForeignKey("UserId")] public virtual ApplicationUser ApplicationUser { get; set; } = null!;
+    [Key] public Guid OrderId { get; set; }
+    public long OrderNumber { get; set; }
+    public Guid CustomerId { get; set; }
+    [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
     public double TotalPrice { get; set; }
-
-    public virtual ICollection<OrderTicket> OrderTickets { get; set; } = new List<OrderTicket>();
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }

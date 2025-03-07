@@ -1,9 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TicketHub.Models.Domain;
 
-public class OrderTicket
+public class OrderDetail
 {
+    [Key] public Guid OrderDetailId { get; set; }
+
     public Guid OrderId { get; set; }
     [ForeignKey("OrderId")] public virtual Orders Orders { get; set; } = null!;
     public Guid TicketId { get; set; }
