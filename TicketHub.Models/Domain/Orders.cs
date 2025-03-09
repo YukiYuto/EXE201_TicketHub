@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TicketHub.Models.Domain;
 
-public class Orders
+public class Orders : BaseEntity<string, string, string>
 {
     [Key] public Guid OrderId { get; set; }
     public long OrderNumber { get; set; }

@@ -80,6 +80,20 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync();
     }
 
+    public async Task<IEnumerable<T>> GetListAsync(Expression<Func<T, bool>> filter = null,
+        string includeProperties = "")
+    {
+        IQueryable<T> query = _dbSet;
+
+        if (filter != null) query = query.Where(filter);
+
+        // Include các bảng liên quan
+        foreach (var includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            query = query.Include(includeProperty);
+
+        return await query.ToListAsync();
+    }
+
     public void Remove(T entity)
     {
         _dbSet.Remove(entity);
@@ -88,5 +102,10 @@ public class Repository<T> : IRepository<T> where T : class
     public void RemoveRange(IEnumerable<T> entities)
     {
         _dbSet.RemoveRange(entities);
+    }
+
+    public void UpdateRange(IEnumerable<T> entities)
+    {
+        _dbSet.UpdateRange(entities);
     }
 }

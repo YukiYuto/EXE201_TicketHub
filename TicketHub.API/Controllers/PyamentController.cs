@@ -16,19 +16,19 @@ public class PaymentController : ControllerBase
         _paymentService = paymentService;
     }
 
-    /*[HttpPost("create-payment-link")]
+    [HttpPost("create-payment-link")]
     public async Task<ActionResult<ResponseDto>> CreatePaymentLink([FromBody] CreatePaymentLinkDto createPaymentLinkDTO)
     {
         var responseDto = await _paymentService.CreatePayOsPaymentLink(User, createPaymentLinkDTO);
 
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
+
     [HttpPost("confirm-payment")]
     public async Task<ActionResult<ResponseDto>> ConfirmPayment([FromBody] ConfirmPayment confirmPaymentDTO)
     {
         var responseDto = await _paymentService.ConfirmPayOsTransaction(confirmPaymentDTO);
 
         return StatusCode(responseDto.StatusCode, responseDto);
-    }*/
+    }
 }

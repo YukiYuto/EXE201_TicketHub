@@ -9,6 +9,8 @@ public interface IRepository<T> where T : class
     Task<T?> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null);
     Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
     Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate, string? includeProperties = null);
+    Task<IEnumerable<T>> GetListAsync(Expression<Func<T, bool>> filter = null, string includeProperties = "");
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
+    void UpdateRange(IEnumerable<T> entities);
 }

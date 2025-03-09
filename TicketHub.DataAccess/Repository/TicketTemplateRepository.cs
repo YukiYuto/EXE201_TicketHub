@@ -34,7 +34,6 @@ public class TicketTemplateRepository : Repository<TicketTemplate>, ITicketTempl
                 _ => query
             };
 
-        // 🔀 **Sorting**
         query = sortBy?.ToLower() switch
         {
             "ticketname" => query.OrderBy(t => t.TicketName),
@@ -44,7 +43,6 @@ public class TicketTemplateRepository : Repository<TicketTemplate>, ITicketTempl
             _ => query.OrderBy(t => t.TicketName) // Default sort
         };
 
-        // 🔢 **Paging**
         var totalItems = await query.CountAsync();
         query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
 

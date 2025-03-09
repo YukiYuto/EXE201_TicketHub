@@ -164,12 +164,12 @@ public class Program
     }
 
     //auto update database
-    /*private static void ApplyMigration(IApplicationBuilder app)
-    {
-        using (var scope = app.ApplicationServices.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            if (context.Database.GetPendingMigrations().Any()) context.Database.Migrate();
-        }
-    }*/
+    // private static void ApplyMigration(IApplicationBuilder app)
+    // {
+    //     using (var scope = app.ApplicationServices.CreateScope())
+    //     {
+    //         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    //         if (context.Database.GetPendingMigrations().Any()) context.Database.Migrate();
+    //     }
+    // }
 }

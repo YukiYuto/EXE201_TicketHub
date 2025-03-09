@@ -11,8 +11,8 @@ namespace TicketHub.Services.Service;
 
 public class OrderService : IOrderService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public OrderService
@@ -27,143 +27,31 @@ public class OrderService : IOrderService
         _userManager = userManager;
     }
 
-
-    /*public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
-        string? sortBy, int pageNumber = 1, int pageSize = 10)
-    {
-        IEnumerable<Orders> allOrders = null!;
-        allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
-
-        if (!allOrders.Any())
-        {
-            return new ResponseDto()
-            {
-                Message = "There are no orders",
-                IsSuccess = true,
-                StatusCode = 404,
-                Result = null
-            };
-        }
-
-        var listOrders = allOrders.ToList();
-
-        if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
-        {
-            switch (filterOn.Trim().ToLower())
-            {
-                case "TotalPrice":
-                    listOrders = listOrders.Where(x =>
-                            x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
-                        .ToList();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (!string.IsNullOrEmpty(sortBy))
-        {
-            var sortParams = sortBy.Trim().ToLower().Split('_'); // Chia chuỗi sortBy theo ký tự '_'
-            var sortField = sortParams[0]; // Tên cột cần sắp xếp
-            var sortDirection = sortParams.Length > 1 ? sortParams[1] : "asc"; // Lấy hướng sắp xếp
-
-            switch (sortField)
-            {
-                case "TotalPrice":
-                    listOrders = sortDirection.Equals("desc")
-                        ? listOrders.OrderByDescending(x => x.TotalPrice).ToList()
-                        : listOrders.OrderBy(x => x.TotalPrice).ToList();
-                    break;
-
-                default:
-                    listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
-                    break;
-            }
-        }
-        else
-        {
-            listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
-        }
-
-        // Phân trang
-        if (pageNumber > 0 && pageSize > 0)
-        {
-            var skipResult = (pageNumber - 1) * pageSize;
-            listOrders = listOrders.Skip(skipResult).Take(pageSize).ToList();
-        }
-
-        // Chuyển đổi danh sách sự kiện thành DTO
-        var orderDto = listOrders.Select(eventItem => new GetOrderDto()
-        {
-            OrderId = eventItem.OrderId,
-            UserId = eventItem.UserId,
-            TotalPrice = eventItem.TotalPrice
-        }).ToList();
-
-        return new ResponseDto()
-        {
-            Message = "Get orders successfully",
-            IsSuccess = true,
-            StatusCode = 200,
-            Result = orderDto
-        };
-    }
-
-    public async Task<ResponseDto> GetOrder(ClaimsPrincipal user, Guid orderId)
-    {
-        var order = await _unitOfWork.OrderRepository.GetById(orderId);
-        if (order == null)
-        {
-            return new ResponseDto
-            {
-                Message = "Order not found",
-                Result = null,
-                IsSuccess = false,
-                StatusCode = 404
-            };
-        }
-
-        var orderDto = _mapper.Map<GetOrderDto>(order);
-
-        return new ResponseDto
-        {
-            Message = "Order found successfully",
-            Result = orderDto,
-            IsSuccess = true,
-            StatusCode = 201
-        };
-    }
-
-
-    public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto)
+    /*public async Task<ResponseDto> CreateOrder(ClaimsPrincipal user, CreateOrderDto createOrderDto)
     {
         try
         {
             var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
-            {
                 return new ResponseDto
                 {
                     Message = "User not found",
                     IsSuccess = false,
                     StatusCode = 404
                 };
-            }
 
             // Lấy danh sách CartItem đã checkout từ database
             var checkedOutCartItems = await _unitOfWork.CartItemRepository
                 .GetAllAsync(x => createOrderDto.CheckedOutCartItemIds.Contains(x.CartItemId),
-                    includeProperties: "Ticket");
+                    "Ticket");
 
             if (checkedOutCartItems == null || !checkedOutCartItems.Any())
-            {
                 return new ResponseDto
                 {
                     Message = "No cart items found for the provided IDs",
                     IsSuccess = false,
                     StatusCode = 400
                 };
-            }
 
             // Tạo đơn hàng từ danh sách CartItem đã checkout
             var newOrder = new Orders
@@ -207,6 +95,112 @@ public class OrderService : IOrderService
             };
         }
     }
+    */
+
+
+    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
+        string? sortBy, int pageNumber = 1, int pageSize = 10)
+    {
+        IEnumerable<Orders> allOrders = null!;
+        allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
+
+        if (!allOrders.Any())
+            return new ResponseDto
+            {
+                Message = "There are no orders",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = allOrders
+            };
+
+        var listOrders = allOrders.ToList();
+
+        if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
+            switch (filterOn.Trim().ToLower())
+            {
+                case "TotalPrice":
+                    listOrders = listOrders.Where(x =>
+                            x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
+                        .ToList();
+                    break;
+            }
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            var sortParams = sortBy.Trim().ToLower().Split('_'); // Chia chuỗi sortBy theo ký tự '_'
+            var sortField = sortParams[0]; // Tên cột cần sắp xếp
+            var sortDirection = sortParams.Length > 1 ? sortParams[1] : "asc"; // Lấy hướng sắp xếp
+
+            switch (sortField)
+            {
+                case "TotalPrice":
+                    listOrders = sortDirection.Equals("desc")
+                        ? listOrders.OrderByDescending(x => x.TotalPrice).ToList()
+                        : listOrders.OrderBy(x => x.TotalPrice).ToList();
+                    break;
+
+                default:
+                    listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
+                    break;
+            }
+        }
+        else
+        {
+            listOrders = listOrders.OrderBy(x => x.TotalPrice).ToList();
+        }
+
+        // Phân trang
+        if (pageNumber > 0 && pageSize > 0)
+        {
+            var skipResult = (pageNumber - 1) * pageSize;
+            listOrders = listOrders.Skip(skipResult).Take(pageSize).ToList();
+        }
+
+        // Chuyển đổi danh sách sự kiện thành DTO
+        var orderDto = listOrders.Select(orderItem => new GetOrderDto
+        {
+            OrderId = orderItem.OrderId,
+            CustomerId = orderItem.CustomerId,
+            TotalPrice = orderItem.TotalPrice,
+            OrderNumber = orderItem.OrderNumber
+        }).ToList();
+
+        return new ResponseDto
+        {
+            Message = "Get orders successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = orderDto
+        };
+    }
+/*
+    public async Task<ResponseDto> GetOrder(ClaimsPrincipal user, Guid orderId)
+    {
+        var order = await _unitOfWork.OrderRepository.GetById(orderId);
+        if (order == null)
+        {
+            return new ResponseDto
+            {
+                Message = "Order not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        var orderDto = _mapper.Map<GetOrderDto>(order);
+
+        return new ResponseDto
+        {
+            Message = "Order found successfully",
+            Result = orderDto,
+            IsSuccess = true,
+            StatusCode = 201
+        };
+    }
+
+
+
 
     public async Task<ResponseDto> UpdateOrder(ClaimsPrincipal user, UpdateOrderDto updateOrderDto)
     {
@@ -251,8 +245,8 @@ public class OrderService : IOrderService
                 StatusCode = 404
             };
         }
-        
-        
+
+
 
         await _unitOfWork.OrderRepository.AddAsync(order);
         var delete = await _unitOfWork.SaveAsync();

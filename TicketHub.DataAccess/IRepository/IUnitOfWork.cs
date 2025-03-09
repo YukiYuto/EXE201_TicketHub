@@ -12,8 +12,8 @@ public interface IUnitOfWork
     ICartItemRepository CartItemRepository { get; }
 
     IOrderRepository OrderRepository { get; }
+    IOrderDetailRepository OrderDetailRepository { get; }
 
-    //IOrderTicketRepository OrderTicketRepository { get; }
     IPaymentRepository PaymentRepository { get; }
     ITransactionRepository TransactionRepository { get; }
     Task<int> SaveAsync();

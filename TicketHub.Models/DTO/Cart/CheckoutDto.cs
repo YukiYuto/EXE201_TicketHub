@@ -2,5 +2,5 @@
 
 public class CheckoutDto
 {
-    public List<Guid> CartItemIds { get; set; } = new();
+    public List<Guid> TicketTemplateIds { get; set; } = new();
 }

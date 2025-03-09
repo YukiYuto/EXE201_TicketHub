@@ -16,8 +16,8 @@ namespace TicketHub.Services.Service;
 public class PaymentService : IPaymentService
 //: IPaymentService
 {
-    private readonly PayOS _payOS;
     private readonly IMapper _mapper;
+    private readonly PayOS _payOS;
     private readonly IUnitOfWork _unitOfWork;
 
     public PaymentService(IConfiguration configuration, IMapper mapper, IUnitOfWork unitOfWork)
@@ -31,83 +31,87 @@ public class PaymentService : IPaymentService
         );
     }
 
-    /*public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
+    public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
     {
         try
         {
+            // 🔹 Lấy đơn hàng dựa trên OrderNumber
             var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(createPaymentLink.OrderNumber);
             if (order is null)
-            {
-                return new ResponseDto()
+                return new ResponseDto
                 {
                     Message = "Order does not exist",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
-            }
 
-            // 🔹 Lấy danh sách TicketId từ OrderTicketRepository
-            var ticketIds = await _unitOfWork.OrderTicketRepository.GetTicketIdsByOrderId(order.OrderId);
-            if (ticketIds == null || !ticketIds.Any())
-            {
-                return new ResponseDto()
+            // 🔹 Lấy danh sách TicketTemplateId từ OrderDetail
+            var orderDetails =
+                await _unitOfWork.OrderDetailRepository.GetListAsync(od => od.OrderId == order.OrderId,
+                    "TicketTemplate");
+            if (orderDetails == null || !orderDetails.Any())
+                return new ResponseDto
                 {
                     Message = "No tickets found for this order",
                     IsSuccess = false,
                     StatusCode = 404,
                     Result = null
                 };
-            }
 
-            // 🔹 Lấy danh sách Ticket từ TicketRepository
-            var tickets = await _unitOfWork.TicketRepository.GetListAsync(t => ticketIds.Contains(t.TicketId));
-            if (tickets == null || !tickets.Any())
-            {
-                return new ResponseDto()
-                {
-                    Message = "No valid tickets found",
-                    IsSuccess = false,
-                    StatusCode = 404,
-                    Result = null
-                };
-            }
-
-            // 🔹 Nhóm vé theo loại (nếu cùng loại thì cộng dồn số lượng)
-            var groupedTickets = tickets
-                .GroupBy(t => t.TicketName)
+            // 🔹 Nhóm vé theo `TicketTemplate` và tính tổng tiền
+            var groupedTickets = orderDetails
+                .GroupBy(od => od.TicketTemplate!.TicketName)
                 .Select(g => new ItemData(
-                    name: g.Key, // Tên vé
-                    quantity: g.Count(), // Số lượng vé cùng loại
-                    price: Convert.ToInt32(g.First().TicketPrice) // Giá 1 vé
+                    g.Key,
+                    g.Sum(od => od.Quantity),
+                    Convert.ToInt32(g.First().TicketTemplate!.TicketPrice)
                 ))
                 .ToList();
+
+            // 🔹 Kiểm tra nếu không có vé hợp lệ
+            if (!groupedTickets.Any())
+                return new ResponseDto
+                {
+                    Message = "No valid tickets found for payment",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Result = null
+                };
 
             // 🔹 Tính tổng tiền
             var totalPrice = groupedTickets.Sum(i => i.price * i.quantity);
 
+            // 🔹 Kiểm tra tổng tiền hợp lệ
+            if (totalPrice <= 0)
+                return new ResponseDto
+                {
+                    Message = "Total price must be greater than 0",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Result = null
+                };
+
             // 🔹 Tạo dữ liệu thanh toán
             var paymentData = new PaymentData(
-                orderCode: createPaymentLink.OrderNumber,
-                amount: totalPrice,
-                description: "Payment for ticket(s)",
-                items: groupedTickets, // Danh sách vé theo nhóm
-                cancelUrl: createPaymentLink.CancelUrl,
-                returnUrl: createPaymentLink.ReturnUrl
+                createPaymentLink.OrderNumber,
+                totalPrice,
+                "Payment for ticket(s)",
+                groupedTickets,
+                createPaymentLink.CancelUrl,
+                createPaymentLink.ReturnUrl
             );
 
-            CreatePaymentResult result = await _payOS.createPaymentLink(paymentData);
+            var result = await _payOS.createPaymentLink(paymentData);
 
             // 🔹 Lưu thông tin thanh toán vào database
-            Payment payment = new Payment()
+            var payment = new Payment
             {
                 OrderNumber = createPaymentLink.OrderNumber,
                 Amount = result.amount,
                 Description = result.description.Trim(),
                 CancelUrl = paymentData.cancelUrl,
                 ReturnUrl = paymentData.returnUrl,
-                ExpiredAt = paymentData.expiredAt,
-                Signature = paymentData.signature,
                 CreatedAt = DateTime.Now,
                 Status = StaticPayment.paymentStatusPending
             };
@@ -115,7 +119,7 @@ public class PaymentService : IPaymentService
             await _unitOfWork.PaymentRepository.AddAsync(payment);
             await _unitOfWork.SaveAsync();
 
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "Create payment link successfully",
                 IsSuccess = true,
@@ -123,15 +127,15 @@ public class PaymentService : IPaymentService
                 Result = new
                 {
                     result,
-                    PaymentTransactionId = payment.PaymentTransactionId
+                    payment.PaymentTransactionId
                 }
             };
         }
         catch (Exception e)
         {
-            return new ResponseDto()
+            return new ResponseDto
             {
-                Message = e.Message,
+                Message = "An error occurred: " + e.Message,
                 IsSuccess = false,
                 StatusCode = 500,
                 Result = null
@@ -139,106 +143,146 @@ public class PaymentService : IPaymentService
         }
     }
 
-public async Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPayment)
-{
-    try
+    public async Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPayment)
     {
-        var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(confirmPayment.orderNumber);
-        if (order is null)
+        try
         {
-            return new ResponseDto()
+            // 🔹 Lấy thông tin đơn hàng
+            var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(confirmPayment.orderNumber);
+            if (order is null)
+                return new ResponseDto
+                {
+                    Message = "Order does not exist",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+
+            if (order.Status == StaticPayment.paymentStatusSucess)
+                return new ResponseDto
+                {
+                    Message = "Order has already been completed",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+
+            // 🔹 Kiểm tra trạng thái thanh toán từ PayOS
+            var transactionInfo = await _payOS.getPaymentLinkInformation(confirmPayment.orderNumber);
+            if (transactionInfo == null || transactionInfo.status != StaticPayment.paymentStatusSucess)
+                return new ResponseDto
+                {
+                    Message = "Transaction not found or not successful",
+                    IsSuccess = false,
+                    StatusCode = 400
+                };
+
+            // 🔹 Cập nhật trạng thái thanh toán
+            var payment = await _unitOfWork.PaymentRepository.GetPaymentByOrderNumber(confirmPayment.orderNumber);
+            if (payment == null)
+                return new ResponseDto
+                {
+                    Message = "Payment record not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+
+            payment.Status = StaticPayment.paymentStatusSucess;
+            _unitOfWork.PaymentRepository.Update(payment);
+
+            // 🔹 Lấy danh sách vé đã mua từ OrderDetails
+            var orderDetails = await _unitOfWork.OrderDetailRepository.GetListByOrderIdAsync(order.OrderId);
+
+            var ticketList = new List<Ticket>();
+            var ticketTemplates = new List<TicketTemplate>();
+
+            foreach (var orderDetail in orderDetails)
             {
-                Message = "Order does not exist",
-                IsSuccess = false,
-                StatusCode = 404,
-                Result = null
-            };
-        }
+                // 🔹 Lấy TicketTemplate dựa vào TicketTemplateId trong OrderDetail
+                var ticketTemplate =
+                    await _unitOfWork.TicketTemplateRepository.GetAsync(tt =>
+                        tt.TicketTemplateId == orderDetail.TicketTemplateId);
 
-        // 🔹 Kiểm tra giao dịch thanh toán trên PayOS
-        PaymentLinkInformation transactionInfo = await _payOS.getPaymentLinkInformation(confirmPayment.orderNumber);
-        if (transactionInfo == null || transactionInfo.status != StaticPayment.paymentStatusSucess)
-        {
-            return new ResponseDto()
-            {
-                Message = "Transaction not found or not successful",
-                IsSuccess = false,
-                StatusCode = 400,
-                Result = null
-            };
-        }
+                if (ticketTemplate == null)
+                    return new ResponseDto
+                    {
+                        Message = "TicketTemplate not found for OrderDetail",
+                        StatusCode = 400,
+                        IsSuccess = false
+                    };
 
-        // 🔹 Cập nhật trạng thái thanh toán
-        var payment = await _unitOfWork.PaymentRepository.GetPaymentByOrderNumber(confirmPayment.orderNumber);
-        if (payment == null)
-        {
-            return new ResponseDto()
-            {
-                Message = "Payment record not found",
-                IsSuccess = false,
-                StatusCode = 404,
-                Result = null
-            };
-        }
+                // 🔹 Kiểm tra nếu số vé còn lại đủ để cấp phát
+                if (ticketTemplate.AvailableQuantity < orderDetail.Quantity)
+                    return new ResponseDto
+                    {
+                        Message = $"Not enough tickets available for {ticketTemplate.TicketName}!",
+                        StatusCode = 400,
+                        IsSuccess = false
+                    };
 
-        payment.Status = StaticPayment.paymentStatusSucess;
-        _unitOfWork.PaymentRepository.Update(payment);
+                // 🔹 Giảm số lượng vé còn lại
+                ticketTemplate.AvailableQuantity -= orderDetail.Quantity;
 
-        // 🔹 Lấy danh sách vé thuộc đơn hàng
-        var orderTickets = await _unitOfWork.OrderTicketRepository.GetTicketsByOrderId(order.OrderId);
-        var ticketIds = orderTickets.Select(ot => ot.TicketId).ToList();
-
-        // 🔹 Cập nhật chủ sở hữu vé
-        var tickets = await _unitOfWork.TicketRepository.GetListAsync(t => ticketIds.Contains(t.TicketId));
-        foreach (var ticket in tickets)
-        {
-            ticket.UserId = order.UserId; // Chuyển quyền sở hữu sang người mua
-        }
-
-        _unitOfWork.TicketRepository.UpdateRange(tickets);
-
-        // 🔹 Lưu transaction vào database
-        var transaction = new Transaction()
-        {
-            CustomerId = order.UserId,
-            OrderId = order.OrderId,
-            PaymentId = confirmPayment.paymentTransactionId,
-            Amount = payment.Amount,
-            TransactionMethod = "Tranfer",
-            TransactionDateTime = DateTime.UtcNow
-        };
-
-        await _unitOfWork.TransactionRepository.AddAsync(transaction);
-        await _unitOfWork.SaveAsync();
-
-        return new ResponseDto()
-        {
-            Message = "Payment confirmed successfully, tickets ownership updated, and transaction saved",
-            IsSuccess = true,
-            StatusCode = 200,
-            Result = new
-            {
-                TransactionId = transaction.PaymentId,
-                Status = payment.Status,
-                PayOS_ConfirmUrl = transactionInfo.transactions // 🔹 Link xác nhận của PayOS
+                // 🔹 Tạo số lượng vé tương ứng với số lượng đã đặt
+                for (var i = 0; i < orderDetail.Quantity; i++)
+                    ticketList.Add(new Ticket
+                    {
+                        TicketId = Guid.NewGuid(),
+                        CustomerId = order.CustomerId,
+                        TicketTemplateId = ticketTemplate.TicketTemplateId, // ✅ Lấy từ TicketTemplate
+                        Status = TicketStatus.Success,
+                        TicketDescription =
+                            "Ticket for event: " + ticketTemplate.TicketName, // ✅ Dùng TicketTemplate.TicketName
+                        IsFromExternal = false,
+                        IsVisible = true
+                    });
             }
-        };
-    }
-    catch (Exception ex)
-    {
-        return new ResponseDto()
-        {
-            Message = ex.Message,
-            IsSuccess = false,
-            StatusCode = 500,
-            Result = null
-        };
-    }
-}
 
-    public Task<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId,
-        string cancellationReason)
-    {
-        throw new NotImplementedException();
-    }*/
+            // 🔹 Lưu tất cả Tickets vào database
+            await _unitOfWork.TicketRepository.AddRangeAsync(ticketList);
+
+            // 🔹 Cập nhật số lượng vé còn lại trong TicketTemplate
+            _unitOfWork.TicketTemplateRepository.UpdateRange(ticketTemplates);
+
+            // 🔹 Cập nhật trạng thái đơn hàng
+            order.Status = StaticPayment.paymentStatusSucess;
+            _unitOfWork.OrderRepository.Update(order);
+
+            // 🔹 Tạo và lưu transaction vào database
+            var transaction = new Transaction
+            {
+                CustomerId = order.CustomerId,
+                OrderId = order.OrderId,
+                PaymentId = confirmPayment.paymentTransactionId,
+                Amount = payment.Amount,
+                TransactionMethod = "Transfer",
+                TransactionDateTime = DateTime.UtcNow,
+                Status = StaticPayment.paymentStatusSucess
+            };
+
+            await _unitOfWork.TransactionRepository.AddAsync(transaction);
+            await _unitOfWork.SaveAsync();
+
+            return new ResponseDto
+            {
+                Message = "Payment confirmed! Tickets generated and assigned successfully.",
+                IsSuccess = true,
+                StatusCode = 200,
+                Result = new
+                {
+                    TransactionId = transaction.PaymentId,
+                    PaymentStatus = payment.Status,
+                    TicketsAssigned = ticketList.Count,
+                    PayOS_ConfirmUrl = transactionInfo.transactions
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ResponseDto
+            {
+                Message = $"An error occurred: {ex.Message}",
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
+    }
 }

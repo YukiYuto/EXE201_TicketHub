@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TicketHub.DataAccess.Context;
 
@@ -11,9 +12,11 @@ using TicketHub.DataAccess.Context;
 namespace TicketHub.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250308090618_MigrationDb_Transaction-Status")]
+    partial class MigrationDb_TransactionStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -406,13 +409,7 @@ namespace TicketHub.DataAccess.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("TicketId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TicketTemplateId")
+                    b.Property<Guid>("TicketId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("OrderDetailId");
@@ -420,8 +417,6 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("TicketId");
-
-                    b.HasIndex("TicketTemplateId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -810,19 +805,12 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasOne("TicketHub.Models.Domain.Ticket", "Ticket")
                         .WithMany("OrderDetails")
                         .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("TicketHub.Models.Domain.TicketTemplate", "TicketTemplate")
-                        .WithMany()
-                        .HasForeignKey("TicketTemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Orders");
 
                     b.Navigation("Ticket");
-
-                    b.Navigation("TicketTemplate");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Orders", b =>
