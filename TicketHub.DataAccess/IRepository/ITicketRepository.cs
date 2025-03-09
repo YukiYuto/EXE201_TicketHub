@@ -11,6 +11,9 @@ public interface ITicketRepository : IRepository<Ticket>
     /*
     Task<IEnumerable<Ticket>> GetAllWithEventAndLocationAsync();
     */
-    Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter);
+    Task<List<Ticket>> GetListAsync(
+        Expression<Func<Ticket, bool>> filter,
+        string? includeProperties = null
+    );
     Task<int> SaveAsync();
 }

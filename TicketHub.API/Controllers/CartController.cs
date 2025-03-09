@@ -26,6 +26,13 @@ public class CartController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
+    [HttpGet]
+    public async Task<ActionResult<ResponseDto>> GetAllCartItem()
+    {
+        var responseDto = await _cartService.GetAllCartItem(User);
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
     [HttpPost]
     [Route("AddToCart")]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDTO addToCartDto)
@@ -47,6 +54,14 @@ public class CartController : ControllerBase
             User,
             ticketId
         );
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
+    [HttpPost]
+    [Route("Checkout")]
+    public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
+    {
+        var responseDto = await _cartService.CheckoutCart(User, checkoutDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 

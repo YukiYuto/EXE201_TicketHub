@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Transactions;
 
 namespace TicketHub.Models.Domain;
 
@@ -14,7 +13,7 @@ public class Transaction
     public DateTime TransactionDateTime { get; set; }
     public string TransactionMethod { get; set; } = null!;
 
-    public TransactionStatus Status { get; set; }
+    public string Status { get; set; } = null!;
 
     [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
     [ForeignKey("OrderId")] public virtual Orders Orders { get; set; }

@@ -1,7 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
+using TicketHub.Models.DTO;
+using TicketHub.Models.DTO.Order;
 using TicketHub.Services.IService;
 
 namespace TicketHub.Services.Service;
@@ -95,27 +98,24 @@ public class OrderService : IOrderService
     */
 
 
-    /*public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
+    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
         string? sortBy, int pageNumber = 1, int pageSize = 10)
     {
         IEnumerable<Orders> allOrders = null!;
         allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
 
         if (!allOrders.Any())
-        {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "There are no orders",
                 IsSuccess = true,
-                StatusCode = 404,
-                Result = null
+                StatusCode = 200,
+                Result = allOrders
             };
-        }
 
         var listOrders = allOrders.ToList();
 
         if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
-        {
             switch (filterOn.Trim().ToLower())
             {
                 case "TotalPrice":
@@ -123,10 +123,7 @@ public class OrderService : IOrderService
                             x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
                         .ToList();
                     break;
-                default:
-                    break;
             }
-        }
 
         if (!string.IsNullOrEmpty(sortBy))
         {
@@ -160,14 +157,15 @@ public class OrderService : IOrderService
         }
 
         // Chuyển đổi danh sách sự kiện thành DTO
-        var orderDto = listOrders.Select(eventItem => new GetOrderDto()
+        var orderDto = listOrders.Select(orderItem => new GetOrderDto
         {
-            OrderId = eventItem.OrderId,
-            UserId = eventItem.UserId,
-            TotalPrice = eventItem.TotalPrice
+            OrderId = orderItem.OrderId,
+            CustomerId = orderItem.CustomerId,
+            TotalPrice = orderItem.TotalPrice,
+            OrderNumber = orderItem.OrderNumber
         }).ToList();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Get orders successfully",
             IsSuccess = true,
@@ -175,7 +173,7 @@ public class OrderService : IOrderService
             Result = orderDto
         };
     }
-
+/*
     public async Task<ResponseDto> GetOrder(ClaimsPrincipal user, Guid orderId)
     {
         var order = await _unitOfWork.OrderRepository.GetById(orderId);

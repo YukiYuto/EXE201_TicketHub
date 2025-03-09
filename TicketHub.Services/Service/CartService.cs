@@ -48,7 +48,7 @@ public class CartService : ICartService
 
         // Lấy dữ liệu theo trang (Pagination)
         var paginatedCarts = allCarts
-            .OrderByDescending(c => c.CartId) // Sắp xếp theo Cart mới nhất
+            .OrderByDescending(c => c.CartId)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToList();
@@ -57,9 +57,7 @@ public class CartService : ICartService
         var cartDtos = paginatedCarts.Select(c => new
         {
             c.CartId,
-            // UserId = c.UserId, // Chủ sở hữu giỏ hàng
-            // TotalAmount = c.TotalAmount, // Tổng tiền giỏ hàng
-            TotalTickets = c.CartItems.Count // Số lượng vé trong giỏ hàng
+            TotalTickets = c.CartItems.Count
         }).ToList();
 
         return new ResponseDto
@@ -69,11 +67,11 @@ public class CartService : ICartService
             StatusCode = 200,
             Result = new
             {
-                TotalCarts = totalCarts, // Tổng số Cart
-                TotalPages = totalPages, // Tổng số trang
-                PageSize = pageSize, // Số Cart mỗi trang
-                CurrentPage = pageNumber, // Trang hiện tại
-                Carts = cartDtos // Danh sách Cart của trang hiện tại
+                TotalCarts = totalCarts,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                CurrentPage = pageNumber,
+                Carts = cartDtos
             }
         };
     }
@@ -113,6 +111,15 @@ public class CartService : ICartService
                     Result = null
                 };
 
+            if (ticketTemplate.AvailableQuantity < addToCartDto.Quantity)
+                return new ResponseDto
+                {
+                    Message = "Not enough tickets available",
+                    IsSuccess = false,
+                    StatusCode = 400,
+                    Result = null
+                };
+
             // Lấy giỏ hàng của người dùng
             var cart = await _unitOfWork.CartRepository.GetAsync(x => x.CustomerId == customer.CustomerId);
 
@@ -143,7 +150,8 @@ public class CartService : ICartService
                     CartItemId = Guid.NewGuid(),
                     CartId = cart.CartId,
                     TicketTemplateId = ticketTemplate.TicketTemplateId,
-                    Quantity = addToCartDto.Quantity
+                    Quantity = addToCartDto.Quantity,
+                    Status = "1"
                 };
 
                 await _unitOfWork.CartItemRepository.AddAsync(cartItem);
@@ -192,7 +200,6 @@ public class CartService : ICartService
                 Result = null
             };
 
-        // 📌 Tìm giỏ hàng của user
         var cart = await _unitOfWork.CartRepository.GetAsync(x => x.CustomerId == customer.CustomerId,
             "CartItems.TicketTemplate");
         if (cart == null || !cart.CartItems.Any())
@@ -204,7 +211,6 @@ public class CartService : ICartService
                 Result = null
             };
 
-        // 🔍 Tìm `CartItem` dựa trên `cartItemId`
         var cartItem = cart.CartItems.FirstOrDefault(ci => ci.CartItemId == cartItemId);
         if (cartItem == null)
             return new ResponseDto
@@ -215,12 +221,11 @@ public class CartService : ICartService
                 Result = null
             };
 
-        // 🆚 **Nếu là `TicketTemplate` → Giảm số lượng vé**
         if (cartItem.TicketTemplateId != Guid.Empty)
         {
             if (cartItem.Quantity > 1)
             {
-                cartItem.Quantity--;
+                cartItem.Quantity -= 1;
                 _unitOfWork.CartItemRepository.Update(cartItem);
             }
             else
@@ -228,7 +233,7 @@ public class CartService : ICartService
                 _unitOfWork.CartItemRepository.Remove(cartItem);
             }
         }
-        else // 🆕 Nếu là `ResaleListing`, xóa luôn (chỉ có 1 vé)
+        else
         {
             _unitOfWork.CartItemRepository.Remove(cartItem);
         }
@@ -252,8 +257,7 @@ public class CartService : ICartService
             {
                 Message = "User not found",
                 StatusCode = 404,
-                IsSuccess = false,
-                Result = null
+                IsSuccess = false
             };
 
         var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == userId);
@@ -262,11 +266,9 @@ public class CartService : ICartService
             {
                 Message = "Customer not found",
                 StatusCode = 404,
-                IsSuccess = false,
-                Result = null
+                IsSuccess = false
             };
 
-        // 🔹 Lấy giỏ hàng của khách hàng
         var cart = await _unitOfWork.CartRepository.GetAsync(
             c => c.CustomerId == customer.CustomerId,
             "CartItems.TicketTemplate"
@@ -277,84 +279,53 @@ public class CartService : ICartService
             {
                 Message = "Cart is empty",
                 StatusCode = 400,
-                IsSuccess = false,
-                Result = null
+                IsSuccess = false
             };
 
-        // 🔹 Lọc ra những vé khách hàng muốn mua
         var selectedCartItems = cart.CartItems
             .Where(ci => checkoutCartDto.TicketTemplateIds.Contains(ci.TicketTemplate.TicketTemplateId))
             .ToList();
 
         if (!selectedCartItems.Any())
-            return new ResponseDto
-            {
-                Message = "No valid tickets selected!",
-                StatusCode = 400,
-                IsSuccess = false,
-                Result = null
-            };
+            return new ResponseDto { Message = "No valid tickets selected!", StatusCode = 400, IsSuccess = false };
 
-        // 🔹 Tạo đơn hàng mới
+        // 🔹 Tạo đơn hàng (Chưa có Ticket)
         var order = new Orders
         {
             OrderId = Guid.NewGuid(),
             CustomerId = customer.CustomerId,
-            OrderNumber = DateTime.UtcNow.Ticks,
-            TotalPrice = 0
+            OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync(),
+            TotalPrice = selectedCartItems.Sum(ci => ci.Quantity * ci.TicketTemplate.TicketPrice),
+            Status = "Pending"
         };
 
-        var orderTickets = new List<OrderDetail>();
-        var tickets = new List<Ticket>();
-
-        foreach (var cartItem in selectedCartItems)
+        // 🔹 Lưu OrderDetail (chỉ có TicketTemplateId, chưa có TicketId)
+        var orderDetails = selectedCartItems.Select(cartItem => new OrderDetail
         {
-            var ticketTemplate = cartItem.TicketTemplate;
+            OrderDetailId = Guid.NewGuid(),
+            OrderId = order.OrderId,
+            TicketTemplateId = cartItem.TicketTemplate.TicketTemplateId,
+            Quantity = cartItem.Quantity
+        }).ToList();
 
-            if (ticketTemplate.AvailableQuantity <= 0)
-                return new ResponseDto
-                {
-                    Message = $"Ticket {ticketTemplate.TicketName} is sold out!",
-                    StatusCode = 400,
-                    IsSuccess = false,
-                    Result = null
-                };
-
-            var ticket = new Ticket
-            {
-                TicketId = Guid.NewGuid(),
-                TicketTemplateId = ticketTemplate.TicketTemplateId,
-                CustomerId = customer.CustomerId,
-                Status = TicketStatus.Success,
-                IsVisible = true
-            };
-
-            tickets.Add(ticket);
-            orderTickets.Add(new OrderDetail { OrderId = order.OrderId, TicketId = ticket.TicketId });
-
-            ticketTemplate.AvailableQuantity -= 1;
-            order.TotalPrice += ticketTemplate.TicketPrice;
-        }
-
-        // 🔹 Lưu tất cả dữ liệu vào database
         await _unitOfWork.OrderRepository.AddAsync(order);
-        await _unitOfWork.TicketRepository.AddRangeAsync(tickets);
-        await _unitOfWork.OrderDetailRepository.AddRangeAsync(orderTickets);
-        _unitOfWork.TicketTemplateRepository.UpdateRange(selectedCartItems.Select(ci => ci.TicketTemplate));
-
-        // 🔹 Xóa chỉ những vé đã mua khỏi giỏ hàng
-        _unitOfWork.CartItemRepository.RemoveRange(selectedCartItems);
+        await _unitOfWork.OrderDetailRepository.AddRangeAsync(orderDetails);
         await _unitOfWork.SaveAsync();
+
 
         return new ResponseDto
         {
-            Message = "Checkout successfully!",
+            Message = "Checkout successful! Please complete payment.",
             StatusCode = 200,
             IsSuccess = true,
-            Result = new { order.OrderId, order.TotalPrice }
+            Result = new
+            {
+                order.OrderId,
+                order.TotalPrice,
+                order.OrderNumber
+            }
         };
     }
-
     //admin
     /*public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
     {
@@ -444,16 +415,17 @@ public class CartService : ICartService
 
             // Lọc các CartItem có Status == "1"
             var cartItemsDto = cart.CartItems
-                .Where(ci => ci.Status == "1") // Chỉ lấy các mục có status = "1"
+                .Where(ci => ci.Status == "1")
                 .Select(ci => new CartItemDto
                 {
                     CartItemId = ci.CartItemId,
-                    //TicketTemplateId = ci.TicketTemplate.TicketTemplateId,
-                    //TicketName = ci.TicketTemplate.TicketName,
-                    TicketPrice = ci.TicketTemplate.TicketPrice
-                    //Quantity = ci.Quantity,
-                    //Rank = ci.TicketTemplate.Rank,
-                    // ImageTicket = ci.TicketTemplate.ImageTicket
+                    TicketTemplateId = ci.TicketTemplate.TicketTemplateId,
+                    TicketName = ci.TicketTemplate.TicketName,
+                    TicketPrice = ci.TicketTemplate.TicketPrice,
+                    Quantity = ci.Quantity,
+                    Status = ci.Status,
+                    Rank = ci.TicketTemplate.Rank,
+                    ImageTicket = ci.TicketTemplate.ImageTicket
                 })
                 .ToList();
 

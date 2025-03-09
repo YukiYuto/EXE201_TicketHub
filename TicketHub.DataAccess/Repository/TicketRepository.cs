@@ -38,9 +38,16 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
             .ToListAsync();
     }*/
 
-    public async Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter)
+    public async Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter,
+        string? includeProperties = null)
     {
-        return await _context.Tickets.Where(filter).ToListAsync();
+        var query = _context.Tickets.Where(filter);
+
+        if (!string.IsNullOrEmpty(includeProperties))
+            foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                query = query.Include(includeProperty);
+
+        return await query.ToListAsync();
     }
 
     public async Task<int> SaveAsync()

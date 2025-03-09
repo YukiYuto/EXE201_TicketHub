@@ -406,7 +406,13 @@ namespace TicketHub.DataAccess.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TicketId")
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TicketTemplateId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("OrderDetailId");
@@ -414,6 +420,8 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("TicketId");
+
+                    b.HasIndex("TicketTemplateId");
 
                     b.ToTable("OrderDetails");
                 });
@@ -424,14 +432,29 @@ namespace TicketHub.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("OrderNumber")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<double>("TotalPrice")
                         .HasColumnType("float");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedTime")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("OrderId");
 
@@ -642,8 +665,9 @@ namespace TicketHub.DataAccess.Migrations
                     b.Property<Guid>("PaymentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TransactionDateTime")
                         .HasColumnType("datetime2");
@@ -786,12 +810,19 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasOne("TicketHub.Models.Domain.Ticket", "Ticket")
                         .WithMany("OrderDetails")
                         .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TicketHub.Models.Domain.TicketTemplate", "TicketTemplate")
+                        .WithMany()
+                        .HasForeignKey("TicketTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Orders");
 
                     b.Navigation("Ticket");
+
+                    b.Navigation("TicketTemplate");
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Orders", b =>
