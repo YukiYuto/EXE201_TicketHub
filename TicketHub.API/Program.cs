@@ -28,7 +28,7 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(
-                builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnection));
+                builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnectionAzure));
         });
 
         // Configure Identity
