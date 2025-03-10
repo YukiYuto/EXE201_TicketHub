@@ -19,14 +19,13 @@ public class UploadImageController : Controller
         if (file == null || file.Length == 0)
             return BadRequest(new ResponseDto { IsSuccess = false, StatusCode = 400, Message = "Invalid file!" });
 
-        // 🔹 Tạo thư mục dựa trên imageType
         var folder = imageType switch
         {
             "user" => "UserAvatars",
             "ticket" => "TicketImages",
             "event" => "EventImages",
             "resale" => "ResaleListings",
-            _ => "OtherImages" // Mặc định nếu không khớp
+            _ => "OtherImages"
         };
 
         var response = await _firebaseService.UploadImage(file, folder, oldImageUrl);

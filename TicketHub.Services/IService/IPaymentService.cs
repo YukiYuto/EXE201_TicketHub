@@ -9,5 +9,16 @@ public interface IPaymentService
     Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink);
 
     Task<ResponseDto> ConfirmPayOsTransaction(ConfirmPayment confirmPayment);
-    //ask<ResponseDto> CancelPayOsPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId, string cancellationReason);
+
+    Task<ResponseDto> GetPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId);
+
+    Task<ResponseDto> GetAll
+    (
+        ClaimsPrincipal User,
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? filterQuery = null,
+        string? filterOn = null,
+        string? sortBy = null
+    );
 }
