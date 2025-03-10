@@ -8,6 +8,7 @@ using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Payment;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 using TicketHub.Utility.Payment;
 using Transaction = TicketHub.Models.Domain.Transaction;
 
@@ -29,6 +30,93 @@ public class PaymentService : IPaymentService
             configuration["Environment:PAYOS_API_KEY"] ?? throw new Exception("Cannot find PAYOS_API_KEY"),
             configuration["Environment:PAYOS_CHECKSUM_KEY"] ?? throw new Exception("Cannot find PAYOS_CHECKSUM_KEY")
         );
+    }
+
+    public async Task<ResponseDto> GetPaymentLink(ClaimsPrincipal User, Guid paymentTransactionId)
+    {
+        var payment = await _unitOfWork.PaymentRepository.GetAsync(p => p.PaymentTransactionId == paymentTransactionId);
+        if (payment == null)
+            return new ResponseDto
+            {
+                Message = "Payment not found",
+                IsSuccess = false,
+                StatusCode = 404,
+                Result = null
+            };
+
+        var paymentDto = _mapper.Map<PaymentDto>(payment);
+
+        return new ResponseDto
+        {
+            Message = "Get payment by Id successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = paymentDto
+        };
+    }
+
+    public async Task<ResponseDto> GetAll
+    (
+        ClaimsPrincipal User,
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? filterQuery = null,
+        string? filterOn = null,
+        string? sortBy = null
+    )
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return new ResponseDto
+            {
+                Message = "User not found",
+                IsSuccess = false,
+                StatusCode = 404,
+                Result = null
+            };
+        var isManager = userId == StaticUserRoles.Member;
+
+        Guid? customerId = null;
+        if (!isManager)
+        {
+            var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == userId);
+            if (customer == null)
+                return new ResponseDto
+                {
+                    Message = "Customer not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+
+            customerId = customer.CustomerId;
+        }
+
+        // 🔹 Lấy danh sách thanh toán từ repository
+        var (payments, totalPayments) =
+            await _unitOfWork.PaymentRepository.GetPaymentsAsync(pageNumber, pageSize, filterOn, filterQuery, sortBy,
+                customerId);
+
+        // 🔹 Chuyển đổi sang DTO
+        var paymentsDto = _mapper.Map<List<PaymentDto>>(payments);
+
+        // 🔹 Tính tổng số trang
+        var totalPages = (int)Math.Ceiling((double)totalPayments / pageSize);
+
+        // 🔹 Trả về kết quả
+        return new ResponseDto
+        {
+            Message = "Payments retrieved successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = new
+            {
+                Payments = paymentsDto,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPayments = totalPayments,
+                TotalPages = totalPages
+            }
+        };
     }
 
     public async Task<ResponseDto> CreatePayOsPaymentLink(ClaimsPrincipal User, CreatePaymentLinkDto createPaymentLink)
@@ -227,10 +315,10 @@ public class PaymentService : IPaymentService
                     {
                         TicketId = Guid.NewGuid(),
                         CustomerId = order.CustomerId,
-                        TicketTemplateId = ticketTemplate.TicketTemplateId, // ✅ Lấy từ TicketTemplate
+                        TicketTemplateId = ticketTemplate.TicketTemplateId,
                         Status = TicketStatus.Success,
                         TicketDescription =
-                            "Ticket for event: " + ticketTemplate.TicketName, // ✅ Dùng TicketTemplate.TicketName
+                            "Ticket for event: " + ticketTemplate.TicketName,
                         IsFromExternal = false,
                         IsVisible = true
                     });
@@ -241,6 +329,15 @@ public class PaymentService : IPaymentService
 
             // 🔹 Cập nhật số lượng vé còn lại trong TicketTemplate
             _unitOfWork.TicketTemplateRepository.UpdateRange(ticketTemplates);
+
+            // 🔹 Xóa các CartItem đã thanh toán
+            var cartItemsToRemove = await _unitOfWork.CartItemRepository.GetListAsync(
+                ci => ci.Cart.CustomerId == order.CustomerId &&
+                      orderDetails.Select(od => od.TicketTemplateId).Contains(ci.TicketTemplateId)
+            );
+
+            if (cartItemsToRemove.Any())
+                _unitOfWork.CartItemRepository.RemoveRange(cartItemsToRemove);
 
             // 🔹 Cập nhật trạng thái đơn hàng
             order.Status = StaticPayment.paymentStatusSucess;

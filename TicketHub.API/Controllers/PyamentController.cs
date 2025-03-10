@@ -16,6 +16,29 @@ public class PaymentController : ControllerBase
         _paymentService = paymentService;
     }
 
+    [HttpGet("get-all")]
+    public async Task<ActionResult<ResponseDto>> GetAll
+    (
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? filterQuery = null,
+        [FromQuery] string? filterOn = null,
+        [FromQuery] string? sortBy = null
+    )
+    {
+        var responseDto = await _paymentService.GetAll(User, pageNumber, pageSize, filterQuery, filterOn, sortBy);
+
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
+    [HttpGet("get-payment-link/{paymentTransactionId}")]
+    public async Task<ActionResult<ResponseDto>> GetPaymentLink(Guid paymentTransactionId)
+    {
+        var responseDto = await _paymentService.GetPaymentLink(User, paymentTransactionId);
+
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
     [HttpPost("create-payment-link")]
     public async Task<ActionResult<ResponseDto>> CreatePaymentLink([FromBody] CreatePaymentLinkDto createPaymentLinkDTO)
     {

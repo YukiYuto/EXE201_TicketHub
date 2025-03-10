@@ -158,12 +158,25 @@ public class CartService : ICartService
             }
 
             await _unitOfWork.SaveAsync();
+
+            var cartItemDto = new GetCartItem
+            {
+                CartItemId = cartItem.CartItemId,
+                CartId = cartItem.CartId,
+                TicketTemplateId = cartItem.TicketTemplateId,
+                Quantity = cartItem.Quantity,
+                Status = cartItem.Status,
+                TicketTemplateName = ticketTemplate.TicketName,
+                TicketPrice = ticketTemplate.TicketPrice,
+                ImageUrl = ticketTemplate.ImageTicket
+            };
+
             return new ResponseDto
             {
                 Message = "Ticket added to cart successfully.",
                 IsSuccess = true,
-                StatusCode = 200
-                //Result = cartDto
+                StatusCode = 200,
+                Result = cartItemDto
             };
         }
         catch (Exception e)
