@@ -459,6 +459,7 @@ public class AuthService : IAuthService
             user.Address = updateUserProfileDto.Address ?? user.Address;
             customer.CCCD = updateUserProfileDto.CCCD ?? customer.CCCD;
             customer.Gender = updateUserProfileDto.Gender ?? customer.Gender;
+            user.BirthDate = updateUserProfileDto.BirthDate ?? user.BirthDate;
 
             _unitOfWork.CustomerRepository.Update(customer);
         }
@@ -623,7 +624,7 @@ public class AuthService : IAuthService
                 CCCD = customer?.CCCD ?? "",
                 Gender = customer?.Gender ?? "Unknown",
                 TaxId = organizer?.TaxId ?? "",
-                ImageUrl = user.Claims.FirstOrDefault(x => x.Type == "AvatarUrl")?.Value,
+                ImageUrl = userEntity.AvatarUrl ?? "",
                 Roles = roles.ToList()
             };
 

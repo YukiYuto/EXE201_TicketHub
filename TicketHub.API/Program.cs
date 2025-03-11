@@ -28,7 +28,7 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(
-                builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnection));
+                builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnectionAzure));
         });
 
         // Configure Identity
@@ -146,7 +146,7 @@ public class Program
         app.UseAuthorization();
 
         // Apply database migrations
-        //ApplyMigration(app);
+        ApplyMigration(app);
 
         // Kích hoạt Swagger middleware  
         if (app.Environment.IsDevelopment())
@@ -164,12 +164,12 @@ public class Program
     }
 
     //auto update database
-    // private static void ApplyMigration(IApplicationBuilder app)
-    // {
-    //     using (var scope = app.ApplicationServices.CreateScope())
-    //     {
-    //         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //         if (context.Database.GetPendingMigrations().Any()) context.Database.Migrate();
-    //     }
-    // }
+    private static void ApplyMigration(IApplicationBuilder app)
+    {
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            if (context.Database.GetPendingMigrations().Any()) context.Database.Migrate();
+        }
+    }
 }
