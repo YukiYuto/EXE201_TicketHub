@@ -27,6 +27,7 @@ public class CartController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = StaticUserRoles.Member)]
     public async Task<ActionResult<ResponseDto>> GetAllCartItem()
     {
         var responseDto = await _cartService.GetAllCartItem(User);
@@ -35,6 +36,7 @@ public class CartController : ControllerBase
 
     [HttpPost]
     [Route("AddToCart")]
+    [Authorize(Roles = StaticUserRoles.Member)]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDTO addToCartDto)
     {
         var responseDto = await _cartService.AddToCart
@@ -47,6 +49,7 @@ public class CartController : ControllerBase
 
     [HttpDelete]
     [Route("RemoveFromCart")]
+    [Authorize(Roles = StaticUserRoles.Member)]
     public async Task<IActionResult> RemoveFromCart([FromQuery] Guid ticketId)
     {
         var responseDto = await _cartService.RemoveFromCart
@@ -59,48 +62,10 @@ public class CartController : ControllerBase
 
     [HttpPost]
     [Route("Checkout")]
+    [Authorize(Roles = StaticUserRoles.Member)]
     public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
     {
         var responseDto = await _cartService.CheckoutCart(User, checkoutDto);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-
-    /*[HttpGet("admin/cart-by-user")]
-    [Authorize(Roles = StaticUserRoles.Admin)]
-    public async Task<ActionResult<ResponseDto>> GetCartByUserId(string userId)
-    {
-        var responseDto = await _cartService.GetCartByUserId(User, userId);
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }
-
-    [HttpGet]
-    [Authorize(Roles = StaticUserRoles.Member)]
-    [Route("GetCartItem")]
-    public async Task<IActionResult> GetCartItem()
-    {
-        var responseDto = await _cartService.GetAllCartItem(User);
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }
-
-
-
-    [HttpDelete]
-    [Route("RemoveFromCart")]
-    public async Task<IActionResult> RemoveFromCart([FromQuery] Guid ticketId)
-    {
-        var responseDto = await _cartService.RemoveFromCart
-        (
-            User,
-            ticketId
-        );
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }
-
-    [HttpPost]
-    [Route("Checkout")]
-    public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
-    {
-        var responseDto = await _cartService.Checkout(User, checkoutDto);
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }*/
 }

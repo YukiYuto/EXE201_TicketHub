@@ -9,19 +9,12 @@ public class ApplicationDbContextSeed
 {
     public static void SeedAdminAccount(ModelBuilder modelBuilder)
     {
-        var userRoleId = "8fa7c7bb-b4dc-480d-a660-e07a90855d5u";
         var staffRoleId = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s";
         var adminRoleId = "8fa7c7bb-daa5-a660-bf02-82301a5eb32a";
+        var managerRoledId = "a7782126-d76b-41c9-86d9-f41a026d107d";
 
         var roles = new List<IdentityRole>
         {
-            /*new IdentityRole
-            {
-                Id = userRoleId,
-                ConcurrencyStamp = StaticUserRoles.Member,
-                Name = StaticUserRoles.Member,
-                NormalizedName = StaticUserRoles.Member,
-            },*/
             new()
             {
                 Id = staffRoleId,
@@ -35,6 +28,13 @@ public class ApplicationDbContextSeed
                 ConcurrencyStamp = StaticUserRoles.Admin,
                 Name = StaticUserRoles.Admin,
                 NormalizedName = StaticUserRoles.Admin
+            },
+            new()
+            {
+                Id = managerRoledId,
+                ConcurrencyStamp = StaticUserRoles.Manager,
+                Name = StaticUserRoles.Manager,
+                NormalizedName = StaticUserRoles.Manager
             }
         };
 
@@ -43,6 +43,7 @@ public class ApplicationDbContextSeed
         // Seeding admin user
         var adminUserId = "TicketHub-Admin";
         var hasher = new PasswordHasher<ApplicationUser>();
+
         var adminUser = new ApplicationUser
         {
             Id = adminUserId,
@@ -70,6 +71,7 @@ public class ApplicationDbContextSeed
 
         // Seeding staff user
         var staffUserId = "StaffId";
+
         var staffUser = new ApplicationUser
         {
             Id = staffUserId,
@@ -97,6 +99,7 @@ public class ApplicationDbContextSeed
 
 
         var staffUserId2 = "StaffId2";
+
         var staffUser2 = new ApplicationUser
         {
             Id = staffUserId2,
@@ -122,7 +125,33 @@ public class ApplicationDbContextSeed
             AccessFailedCount = 0
         };
 
-        modelBuilder.Entity<ApplicationUser>().HasData(adminUser, staffUser2, staffUser);
+        var managerUserId = "ManagerId";
+
+        var managerUser = new ApplicationUser
+        {
+            Id = managerUserId,
+            FullName = "Manager User",
+            BirthDate = new DateTime(1985, 5, 10), // Set appropriate value
+            AvatarUrl = "https://example.com/avatarManager.png", // Set appropriate value
+            Country = "Country",
+            Address = "789 Manager St",
+            UserName = "manager@gmail.com",
+            NormalizedUserName = "MANAGER@GMAIL.COM",
+            Email = "manager@gmail.com",
+            NormalizedEmail = "MANAGER@GMAIL.COM",
+            EmailConfirmed = true,
+            PasswordHash = hasher.HashPassword(null, "Manager123!"), // Hash password
+            SecurityStamp = Guid.NewGuid().ToString(),
+            ConcurrencyStamp = Guid.NewGuid().ToString(),
+            PhoneNumber = "0981234567",
+            PhoneNumberConfirmed = true,
+            TwoFactorEnabled = false,
+            LockoutEnd = null,
+            LockoutEnabled = true,
+            AccessFailedCount = 0
+        };
+
+        modelBuilder.Entity<ApplicationUser>().HasData(adminUser, staffUser2, staffUser, managerUser);
 
         // Assigning the admin role to the admin user
         modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
@@ -134,14 +163,20 @@ public class ApplicationDbContextSeed
         // Assign the Staff role to the staff users  
         modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
         {
-            UserId = "StaffId",
+            UserId = staffUserId,
             RoleId = staffRoleId
         });
 
         modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
         {
-            UserId = "StaffId2",
+            UserId = staffUserId2,
             RoleId = staffRoleId
+        });
+
+        modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
+        {
+            UserId = managerUserId,
+            RoleId = managerRoledId
         });
     }
 }

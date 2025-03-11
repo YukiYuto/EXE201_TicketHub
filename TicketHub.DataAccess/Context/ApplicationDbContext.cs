@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using TicketHub.DataAccess.Seeding;
 using TicketHub.Models.Domain;
 
 namespace TicketHub.DataAccess.Context;
@@ -40,9 +41,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        /*// Seed data
         ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
+        /*// Seed data
+
 
 
         modelBuilder.Entity<CartItem>()

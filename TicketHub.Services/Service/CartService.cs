@@ -310,6 +310,8 @@ public class CartService : ICartService
             CustomerId = customer.CustomerId,
             OrderNumber = await _unitOfWork.OrderRepository.GenerateUniqueNumberAsync(),
             TotalPrice = selectedCartItems.Sum(ci => ci.Quantity * ci.TicketTemplate.TicketPrice),
+            CreatedBy = user.FindFirst(ClaimTypes.Name).Value,
+            CreatedTime = DateTime.UtcNow,
             Status = "Pending"
         };
 

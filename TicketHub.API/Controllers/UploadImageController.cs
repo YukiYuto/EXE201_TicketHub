@@ -16,7 +16,7 @@ public class UploadImageController : Controller
     [HttpPost("upload")]
     public async Task<IActionResult> UploadImage(IFormFile file, string imageType, string? oldImageUrl = null)
     {
-        if (file == null || file.Length == 0)
+        if (file.Length == 0)
             return BadRequest(new ResponseDto { IsSuccess = false, StatusCode = 400, Message = "Invalid file!" });
 
         var folder = imageType switch
