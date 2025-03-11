@@ -6,5 +6,8 @@ public static class StaticUserRoles
     public const string Member = "MEMBER";
     public const string Staff = "STAFF";
     public const string Organization = "ORGANIZATION";
-    
+    public const string Manager = "MANAGER";
+
+    public const string AdminManagerStaff = "ADMIN,MANAGER,STAFF";
+    public const string MemberManager = "MEMBER,MANAGER";
 }

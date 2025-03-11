@@ -6,6 +6,7 @@ using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Order;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.Services.Service;
 
@@ -98,11 +99,51 @@ public class OrderService : IOrderService
     */
 
 
-    public async Task<ResponseDto> GetOrders(ClaimsPrincipal user, string? filterOn, string? filterQuery,
-        string? sortBy, int pageNumber = 1, int pageSize = 10)
+    public async Task<ResponseDto> GetOrders
+    (
+        ClaimsPrincipal user,
+        string? filterOn,
+        string? filterQuery,
+        string? sortBy,
+        int pageNumber = 1,
+        int pageSize = 10
+    )
     {
-        IEnumerable<Orders> allOrders = null!;
-        allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
+        // Lấy UserId từ Claims
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return new ResponseDto
+            {
+                Message = "User is not authenticated",
+                IsSuccess = false,
+                StatusCode = 401
+            };
+
+        // Kiểm tra xem user có phải là Manager hay không
+        var isManager = user.IsInRole(StaticUserRoles.Manager);
+
+        // Lấy danh sách đơn hàng theo vai trò
+        IEnumerable<Orders> allOrders;
+        if (isManager)
+        {
+            // Nếu là Manager, lấy tất cả đơn hàng
+            allOrders = await _unitOfWork.OrderRepository.GetAllAsync();
+        }
+        else
+        {
+            // Nếu là Customer, chỉ lấy đơn hàng của họ
+            var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == userId);
+            if (customer == null)
+                return new ResponseDto
+                {
+                    Message = "Customer not found",
+                    IsSuccess = false,
+                    StatusCode = 404
+                };
+
+            allOrders = await _unitOfWork.OrderRepository.GetAllAsync(o =>
+                o.CustomerId == customer.CustomerId && o.Status == "Pending");
+        }
 
         if (!allOrders.Any())
             return new ResponseDto
@@ -115,25 +156,28 @@ public class OrderService : IOrderService
 
         var listOrders = allOrders.ToList();
 
+        // Lọc theo query (nếu có)
         if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
             switch (filterOn.Trim().ToLower())
             {
-                case "TotalPrice":
-                    listOrders = listOrders.Where(x =>
-                            x.TotalPrice.ToString().Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
+                case "totalprice":
+                    listOrders = listOrders
+                        .Where(x => x.TotalPrice.ToString()
+                            .Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase))
                         .ToList();
                     break;
             }
 
+        // Sắp xếp theo yêu cầu (nếu có)
         if (!string.IsNullOrEmpty(sortBy))
         {
-            var sortParams = sortBy.Trim().ToLower().Split('_'); // Chia chuỗi sortBy theo ký tự '_'
-            var sortField = sortParams[0]; // Tên cột cần sắp xếp
-            var sortDirection = sortParams.Length > 1 ? sortParams[1] : "asc"; // Lấy hướng sắp xếp
+            var sortParams = sortBy.Trim().ToLower().Split('_');
+            var sortField = sortParams[0];
+            var sortDirection = sortParams.Length > 1 ? sortParams[1] : "asc";
 
             switch (sortField)
             {
-                case "TotalPrice":
+                case "totalprice":
                     listOrders = sortDirection.Equals("desc")
                         ? listOrders.OrderByDescending(x => x.TotalPrice).ToList()
                         : listOrders.OrderBy(x => x.TotalPrice).ToList();
@@ -156,13 +200,14 @@ public class OrderService : IOrderService
             listOrders = listOrders.Skip(skipResult).Take(pageSize).ToList();
         }
 
-        // Chuyển đổi danh sách sự kiện thành DTO
+        // Chuyển đổi danh sách đơn hàng thành DTO
         var orderDto = listOrders.Select(orderItem => new GetOrderDto
         {
             OrderId = orderItem.OrderId,
             CustomerId = orderItem.CustomerId,
             TotalPrice = orderItem.TotalPrice,
-            OrderNumber = orderItem.OrderNumber
+            OrderNumber = orderItem.OrderNumber,
+            Status = orderItem.Status
         }).ToList();
 
         return new ResponseDto

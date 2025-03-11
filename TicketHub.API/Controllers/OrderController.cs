@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.DTO;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.API.Controllers;
 
@@ -16,6 +18,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = StaticUserRoles.MemberManager)]
     public async Task<ActionResult<ResponseDto>> GetOders
     (
         [FromQuery] string? filterOn,

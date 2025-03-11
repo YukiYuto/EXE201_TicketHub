@@ -8,4 +8,5 @@ public class GetOrderDto
     [StringLength(450)] public Guid CustomerId { get; set; }
     public double TotalPrice { get; set; }
     public long OrderNumber { get; set; }
+    public string Status { get; set; }
 }

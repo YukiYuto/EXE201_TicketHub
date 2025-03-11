@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Event;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.API.Controllers;
 
@@ -42,7 +43,7 @@ public class EventController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
     public async Task<ActionResult<ResponseDto>> CreateEvent
     (
         [FromBody] CreateEventDto createLocationDto
@@ -54,6 +55,7 @@ public class EventController : ControllerBase
 
     [HttpPut]
     [Authorize]
+    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
     public async Task<ActionResult<ResponseDto>> UpdateEvent
     (
         [FromBody] UpdateEventDto updateLocationDto
@@ -65,6 +67,7 @@ public class EventController : ControllerBase
 
     [HttpDelete("{eventId}")]
     [Authorize]
+    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
     public async Task<ActionResult<ResponseDto>> DeleteEvent
     (
         [FromRoute] Guid eventId
