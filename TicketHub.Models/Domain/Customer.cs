@@ -16,5 +16,5 @@ public class Customer
     public virtual ICollection<Orders> Orders { get; set; } = new List<Orders>();
     public virtual ICollection<ResaleListing> ResaleListings { get; set; } = new List<ResaleListing>();
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
-    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    [NotMapped] public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

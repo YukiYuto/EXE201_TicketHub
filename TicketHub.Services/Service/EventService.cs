@@ -117,7 +117,8 @@ public class EventService : IEventService
             Location = eventItem.Location,
             EventDescription = eventItem.EventDescription,
             Status = eventItem.Status,
-            EventImage = eventItem.EventImage
+            EventImage = eventItem.EventImage,
+            CategoryId = eventItem.CategoryId
         }).ToList();
 
         return new ResponseDto
@@ -161,6 +162,7 @@ public class EventService : IEventService
             EventDate = createEventDto.EventDate,
             CreatedBy = user.Identity!.Name,
             Location = createEventDto.Location,
+            CategoryId = createEventDto.CategoryId,
             UpdatedBy = "",
             CreatedTime = DateTime.Now,
             UpdatedTime = null,

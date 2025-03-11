@@ -11,4 +11,6 @@ public class GetEventDto
     public string Location { get; set; } = null!;
     public int Status { get; set; }
     public string? EventImage { get; set; }
+
+    public Guid CategoryId { get; set; }
 }

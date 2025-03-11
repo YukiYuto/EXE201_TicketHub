@@ -252,7 +252,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.CartItem", b =>
@@ -280,7 +280,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Category", b =>
@@ -316,7 +316,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Customer", b =>
@@ -341,7 +341,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Customer");
+                    b.ToTable("Customer", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>
@@ -394,7 +394,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.OrderDetail", b =>
@@ -423,7 +423,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Orders", b =>
@@ -463,7 +463,7 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("OrderNumber")
                         .IsUnique();
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Organizer", b =>
@@ -488,7 +488,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Organizers");
+                    b.ToTable("Organizers", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
@@ -522,7 +522,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("OrderNumber");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.ResaleListing", b =>
@@ -567,7 +567,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("ResaleListings");
+                    b.ToTable("ResaleListings", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
@@ -603,7 +603,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.TicketTemplate", b =>
@@ -644,7 +644,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("TicketTemplates");
+                    b.ToTable("TicketTemplates", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Transaction", b =>
@@ -684,7 +684,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
