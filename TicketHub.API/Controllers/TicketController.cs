@@ -26,7 +26,7 @@ public class TicketsController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
-    [HttpGet("ticket-templates")]
+    [HttpGet("templates")]
     public async Task<ActionResult<ResponseDto>> GetTicketTemplates(
         [FromQuery] string? filterOn,
         [FromQuery] string? filterQuery,
@@ -37,6 +37,13 @@ public class TicketsController : ControllerBase
         var responseDto = await _ticketService.GetTicketTemplates(
             User, filterOn, filterQuery, sortBy, pageNumber, pageSize
         );
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
+
+    [HttpGet("user")]
+    public async Task<ActionResult<ResponseDto>> GetTicketByUserId()
+    {
+        var responseDto = await _ticketService.GetTicketByUserId(User);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
@@ -61,12 +68,7 @@ public class TicketsController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
-    [HttpGet("user")]
-    public async Task<ActionResult<ResponseDto>> GetTicketByUserId()
-    {
-        var responseDto = await _ticketService.GetTicketByUserId(User);
-        return StatusCode(responseDto.StatusCode, responseDto);
-    }
+
 
     [HttpPost]
     [Authorize]

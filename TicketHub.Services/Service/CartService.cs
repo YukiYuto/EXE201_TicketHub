@@ -168,7 +168,8 @@ public class CartService : ICartService
                 Status = cartItem.Status,
                 TicketTemplateName = ticketTemplate.TicketName,
                 TicketPrice = ticketTemplate.TicketPrice,
-                ImageUrl = ticketTemplate.ImageTicket
+                ImageUrl = ticketTemplate.ImageTicket,
+                Rank = ticketTemplate.Rank
             };
 
             return new ResponseDto

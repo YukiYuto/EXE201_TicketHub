@@ -10,4 +10,5 @@ public class GetCartItem
     public string TicketTemplateName { get; set; } = null!;
     public double TicketPrice { get; set; }
     public string? ImageUrl { get; set; }
+    public string? Rank { get; set; }
 }

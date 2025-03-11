@@ -3,6 +3,7 @@ using AutoMapper;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
+using TicketHub.Models.DTO.Ticket;
 using TicketHub.Models.DTO.TicketTemplate;
 using TicketHub.Services.IService;
 
@@ -174,6 +175,107 @@ public class TicketService : ITicketService
             }
         };
     }
+
+    public async Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user)
+    {
+        var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return new ResponseDto
+            {
+                Message = "User not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        var customer = await _unitOfWork.CustomerRepository.GetAsync(c => c.UserId == userId);
+        if (customer == null)
+            return new ResponseDto
+            {
+                Message = "Customer not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        // Truy vấn tất cả vé của người dùng từ cơ sở dữ liệu
+        var tickets =
+            await _unitOfWork.TicketRepository.GetAllAsync(
+                x => x.CustomerId == customer.CustomerId && x.IsVisible,
+                "TicketTemplate");
+
+        if (tickets == null || !tickets.Any())
+            return new ResponseDto
+            {
+                Message = "No tickets found for the user",
+                Result = tickets,
+                IsSuccess = true,
+                StatusCode = 200
+            };
+
+        // Ánh xạ vé lấy được từ cơ sở dữ liệu thành DTO
+        var ticketDtos = _mapper.Map<List<GetTicketDto>>(tickets);
+
+        return new ResponseDto
+        {
+            Message = "Get Ticket successfully",
+            Result = ticketDtos,
+            IsSuccess = true,
+            StatusCode = 200
+        };
+    }
+
+    /*public async Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDto)
+    {
+        var userId = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return new ResponseDto
+            {
+                Message = "User not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        var serinumber =
+            await _unitOfWork.TicketRepository.GetAsync(s => s.SerialNumber == createTicketDto.SerialNumber);
+        if (serinumber != null)
+            return new ResponseDto
+            {
+                Message = "Serial number already exists",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 400
+            };
+
+        var ticket = new Ticket
+        {
+            TicketId = Guid.NewGuid(),
+            TicketName = createTicketDto.TicketName,
+            EventId = createTicketDto.EventId,
+            UserId = userId,
+            CategoryId = createTicketDto.CategoryId,
+            TicketPrice = createTicketDto.TicketPrice,
+            TicketImage = createTicketDto.TicketImage,
+            TicketDescription = createTicketDto.TicketDescription,
+            SerialNumber = createTicketDto.SerialNumber,
+            NewPrice = 0,
+            NegotiationStatus = false,
+            Status = TicketStatus.Processing,
+            IsVisible = true
+        };
+
+        await _unitOfWork.TicketRepository.AddAsync(ticket);
+        await _unitOfWork.SaveAsync();
+
+        return new ResponseDto
+        {
+            Message = "Ticket created successfully",
+            IsSuccess = true,
+            StatusCode = 201,
+            Result = ticket
+        };
+    }*/
 
     /*public async Task<ResponseDto> GetTickets
 (

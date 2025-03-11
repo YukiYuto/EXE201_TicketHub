@@ -20,6 +20,8 @@ public interface ITicketService
         int pageSize = 0
     );
 
+    Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user);
+
     /*Task<ResponseDto> GetTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user);
     Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
