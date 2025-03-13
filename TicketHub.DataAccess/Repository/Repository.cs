@@ -103,6 +103,11 @@ public class Repository<T> : IRepository<T> where T : class
     {
         _dbSet.RemoveRange(entities);
     }
+    
+    public void Update(T entity)
+    {
+        _dbSet.Update(entity);
+    }
 
     public void UpdateRange(IEnumerable<T> entities)
     {

@@ -12,5 +12,6 @@ public interface IRepository<T> where T : class
     Task<IEnumerable<T>> GetListAsync(Expression<Func<T, bool>> filter = null, string includeProperties = "");
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
+    void Update(T entitiy);
     void UpdateRange(IEnumerable<T> entities);
 }

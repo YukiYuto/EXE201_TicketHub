@@ -10,4 +10,5 @@ public class GetTicketTemplateDto
     public int TotalQuantity { get; set; }
     public int AvailableQuantity { get; set; }
     public string Rank { get; set; } = null!;
+    
 }

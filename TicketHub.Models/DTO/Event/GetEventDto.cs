@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TicketHub.Models.DTO.TicketTemplate;
 
 namespace TicketHub.Models.DTO.Event;
 
@@ -13,4 +14,5 @@ public class GetEventDto
     public string? EventImage { get; set; }
 
     public Guid CategoryId { get; set; }
+    public List<GetTicketTemplateDto> TicketTemplates { get; set; } = new();
 }

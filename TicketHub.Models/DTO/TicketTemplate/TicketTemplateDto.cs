@@ -2,6 +2,7 @@
 
 public class TicketTemplateDto
 {
+    public Guid TicketTemplateId { get; set; }
     public string TicketName { get; set; } = null!;
     public Guid EventId { get; set; }
     public string? ImageTicket { get; set; }

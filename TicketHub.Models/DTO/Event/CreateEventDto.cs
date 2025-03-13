@@ -1,4 +1,6 @@
-﻿namespace TicketHub.Models.DTO.Event;
+﻿using TicketHub.Models.DTO.TicketTemplate;
+
+namespace TicketHub.Models.DTO.Event;
 
 public class CreateEventDto
 {
@@ -11,4 +13,5 @@ public class CreateEventDto
     public string Location { get; set; } = null!;
 
     public string? EventImage { get; set; }
+    public List<TicketTemplateDto> TicketTemplates { get; set; } = new();
 }

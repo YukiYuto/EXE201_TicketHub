@@ -19,7 +19,6 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = StaticUserRoles.Admin)]
     public async Task<ActionResult<ResponseDto>> GetCategories
     (
         [FromQuery] string? filterOn,
