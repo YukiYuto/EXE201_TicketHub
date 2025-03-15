@@ -15,43 +15,15 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
         _context = context;
     }
 
-    public async Task<Ticket> GeTicketById(Guid ticketId)
+    public async Task<IEnumerable<Ticket>> GetAllAsync(Expression<Func<Ticket, bool>> filter,
+        Func<IQueryable<Ticket>, IQueryable<Ticket>> includes)
     {
-        return await _context.Tickets.FirstOrDefaultAsync(x => x.TicketId == ticketId);
-    }
+        IQueryable<Ticket> query = _context.Tickets;
 
-    public void Update(Ticket ticket)
-    {
-        _context.Tickets.Update(ticket);
-    }
+        if (filter != null) query = query.Where(filter);
 
-    public void UpdateRange(IEnumerable<Ticket> tickets)
-    {
-        _context.Tickets.UpdateRange(tickets);
-    }
+        if (includes != null) query = includes(query);
 
-    /*public async Task<IEnumerable<Ticket>> GetAllWithEventAndLocationAsync()
-    {
-        return await _context.Tickets
-            .Include(t => t.Event)
-            .Include(ticket => ticket.Category)
-            .ToListAsync();
-    }*/
-
-    public async Task<List<Ticket>> GetListAsync(Expression<Func<Ticket, bool>> filter,
-        string? includeProperties = null)
-    {
-        var query = _context.Tickets.Where(filter);
-
-        if (!string.IsNullOrEmpty(includeProperties))
-            foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                query = query.Include(includeProperty);
-
-        return await query.ToListAsync();
-    }
-
-    public async Task<int> SaveAsync()
-    {
-        return await _context.SaveChangesAsync();
+        return await query.AsNoTracking().ToListAsync();
     }
 }

@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         TicketRepository = new TicketRepository(_context);
         TicketTemplateRepository = new TicketTemplateRepository(_context);
+        TicketSerialNumberRepository = new TicketSerialNumberRepository(_context);
         EventRepository = new EventRepository(_context);
         CartRepository = new CartRepository(_context);
         CartItemRepository = new CartItemRepository(_context);
@@ -32,6 +33,7 @@ public class UnitOfWork : IUnitOfWork
     public IOrganizationRepository OrganizationRepository { get; }
     public ITicketRepository TicketRepository { get; set; }
     public ITicketTemplateRepository TicketTemplateRepository { get; set; }
+    public ITicketSerialNumberRepository TicketSerialNumberRepository { get; }
     public IEventRepository EventRepository { get; set; }
     public ICartRepository CartRepository { get; set; }
     public ICartItemRepository CartItemRepository { get; set; }

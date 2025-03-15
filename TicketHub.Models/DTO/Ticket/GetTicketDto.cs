@@ -12,6 +12,8 @@ public class GetTicketDto
     public bool IsFromExternal { get; set; }
     public bool IsVisible { get; set; }
 
+    public Guid SerialNumberId { get; set; }
+
     //TicketTemplate
     public string TicketName { get; set; } = null!;
     public Guid EventId { get; set; }
