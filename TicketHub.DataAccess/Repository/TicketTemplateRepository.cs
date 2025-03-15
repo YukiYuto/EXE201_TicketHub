@@ -48,4 +48,9 @@ public class TicketTemplateRepository : Repository<TicketTemplate>, ITicketTempl
 
         return (await query.ToListAsync(), totalItems);
     }
+
+    public void Update(TicketTemplate ticketTemplate)
+    {
+        _context.TicketTemplates.Update(ticketTemplate);
+    }
 }

@@ -235,15 +235,7 @@ public class PaymentService : IPaymentService
     {
         try
         {
-            // 🔹 Lấy thông tin đơn hàng
             var order = await _unitOfWork.OrderRepository.GetOrderByOrderNumber(confirmPayment.orderNumber);
-            if (order is null)
-                return new ResponseDto
-                {
-                    Message = "Order does not exist",
-                    IsSuccess = false,
-                    StatusCode = 404
-                };
 
             if (order.Status == StaticPayment.paymentStatusSucess)
                 return new ResponseDto
@@ -253,9 +245,9 @@ public class PaymentService : IPaymentService
                     StatusCode = 400
                 };
 
-            // 🔹 Kiểm tra trạng thái thanh toán từ PayOS
+            // Kiểm tra trạng thái thanh toán
             var transactionInfo = await _payOS.getPaymentLinkInformation(confirmPayment.orderNumber);
-            if (transactionInfo == null || transactionInfo.status != StaticPayment.paymentStatusSucess)
+            if (transactionInfo.status != StaticPayment.paymentStatusSucess)
                 return new ResponseDto
                 {
                     Message = "Transaction not found or not successful",
@@ -263,87 +255,70 @@ public class PaymentService : IPaymentService
                     StatusCode = 400
                 };
 
-            // 🔹 Cập nhật trạng thái thanh toán
+            // Cập nhật trạng thái thanh toán
             var payment = await _unitOfWork.PaymentRepository.GetPaymentByOrderNumber(confirmPayment.orderNumber);
-            if (payment == null)
-                return new ResponseDto
-                {
-                    Message = "Payment record not found",
-                    IsSuccess = false,
-                    StatusCode = 404
-                };
 
             payment.Status = StaticPayment.paymentStatusSucess;
             _unitOfWork.PaymentRepository.Update(payment);
 
-            // 🔹 Lấy danh sách vé đã mua từ OrderDetails
+            // Lấy danh sách OrderDetail để tạo Ticket
             var orderDetails = await _unitOfWork.OrderDetailRepository.GetListByOrderIdAsync(order.OrderId);
-
-            var ticketList = new List<Ticket>();
-            var ticketTemplates = new List<TicketTemplate>();
+            var tickets = new List<Ticket>();
 
             foreach (var orderDetail in orderDetails)
             {
-                // 🔹 Lấy TicketTemplate dựa vào TicketTemplateId trong OrderDetail
                 var ticketTemplate =
-                    await _unitOfWork.TicketTemplateRepository.GetAsync(tt =>
-                        tt.TicketTemplateId == orderDetail.TicketTemplateId);
-
+                    await _unitOfWork.TicketTemplateRepository.GetAsync(t =>
+                        t.TicketTemplateId == orderDetail.TicketTemplateId);
                 if (ticketTemplate == null)
                     return new ResponseDto
                     {
                         Message = "TicketTemplate not found for OrderDetail",
-                        StatusCode = 400,
-                        IsSuccess = false
+                        IsSuccess = false,
+                        StatusCode = 400
                     };
 
-                // 🔹 Kiểm tra nếu số vé còn lại đủ để cấp phát
-                if (ticketTemplate.AvailableQuantity < orderDetail.Quantity)
+                // Lấy danh sách SerialNumber khả dụng từ TicketTemplate
+                var availableSerialNumbers = (await _unitOfWork.TicketSerialNumberRepository
+                        .GetListAsync(sn =>
+                            sn.TicketTemplateId == ticketTemplate.TicketTemplateId && sn.Status == "ACTIVE"))
+                    .ToList();
+
+                if (availableSerialNumbers.Count < orderDetail.Quantity)
                     return new ResponseDto
                     {
-                        Message = $"Not enough tickets available for {ticketTemplate.TicketName}!",
-                        StatusCode = 400,
-                        IsSuccess = false
+                        Message = "Not enough available serial numbers for TicketTemplate",
+                        IsSuccess = false,
+                        StatusCode = 400
                     };
 
-                // 🔹 Giảm số lượng vé còn lại
-                ticketTemplate.AvailableQuantity -= orderDetail.Quantity;
-
-                // 🔹 Tạo số lượng vé tương ứng với số lượng đã đặt
+                // Tạo vé với SerialNumber
                 for (var i = 0; i < orderDetail.Quantity; i++)
-                    ticketList.Add(new Ticket
+                {
+                    var serialNumber = availableSerialNumbers[i];
+
+                    tickets.Add(new Ticket
                     {
                         TicketId = Guid.NewGuid(),
                         CustomerId = order.CustomerId,
                         TicketTemplateId = ticketTemplate.TicketTemplateId,
+                        SerialNumberId = serialNumber.SerialNumberId,
                         Status = TicketStatus.Success,
-                        TicketDescription =
-                            "Ticket for event: " + ticketTemplate.TicketName,
+                        TicketDescription = "Ticket for event: " + ticketTemplate.TicketName,
                         IsFromExternal = false,
                         IsVisible = true
                     });
+                    serialNumber.Status = "DISABLE";
+                    _unitOfWork.TicketSerialNumberRepository.Update(serialNumber);
+                }
             }
 
-            // 🔹 Lưu tất cả Tickets vào database
-            await _unitOfWork.TicketRepository.AddRangeAsync(ticketList);
+            await _unitOfWork.TicketRepository.AddRangeAsync(tickets);
 
-            // 🔹 Cập nhật số lượng vé còn lại trong TicketTemplate
-            _unitOfWork.TicketTemplateRepository.UpdateRange(ticketTemplates);
-
-            // 🔹 Xóa các CartItem đã thanh toán
-            var cartItemsToRemove = await _unitOfWork.CartItemRepository.GetListAsync(
-                ci => ci.Cart.CustomerId == order.CustomerId &&
-                      orderDetails.Select(od => od.TicketTemplateId).Contains(ci.TicketTemplateId)
-            );
-
-            if (cartItemsToRemove.Any())
-                _unitOfWork.CartItemRepository.RemoveRange(cartItemsToRemove);
-
-            // 🔹 Cập nhật trạng thái đơn hàng
             order.Status = StaticPayment.paymentStatusSucess;
             _unitOfWork.OrderRepository.Update(order);
 
-            // 🔹 Tạo và lưu transaction vào database
+            // Lưu transaction vào database
             var transaction = new Transaction
             {
                 CustomerId = order.CustomerId,
@@ -367,7 +342,7 @@ public class PaymentService : IPaymentService
                 {
                     TransactionId = transaction.PaymentId,
                     PaymentStatus = payment.Status,
-                    TicketsAssigned = ticketList.Count,
+                    TicketsAssigned = tickets.Count,
                     PayOS_ConfirmUrl = transactionInfo.transactions
                 }
             };
@@ -376,7 +351,7 @@ public class PaymentService : IPaymentService
         {
             return new ResponseDto
             {
-                Message = $"An error occurred: {ex.Message}",
+                Message = ex.Message,
                 IsSuccess = false,
                 StatusCode = 500
             };

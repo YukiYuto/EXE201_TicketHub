@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TicketHub.DataAccess.Context;
 
@@ -11,9 +12,11 @@ using TicketHub.DataAccess.Context;
 namespace TicketHub.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250314113239_TicketSerialNumber")]
+    partial class TicketSerialNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -577,6 +580,7 @@ namespace TicketHub.DataAccess.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CustomerId")
+                        .HasMaxLength(50)
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsFromExternal")
@@ -585,16 +589,13 @@ namespace TicketHub.DataAccess.Migrations
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("SerialNumberId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("TicketDescription")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid?>("TicketTemplateId")
                         .HasColumnType("uniqueidentifier");
@@ -602,8 +603,6 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasKey("TicketId");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("SerialNumberId");
 
                     b.HasIndex("TicketTemplateId");
 
@@ -616,28 +615,13 @@ namespace TicketHub.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("CreatedTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("TicketTemplateId")
+                    b.Property<Guid>("TicketTemplateId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedTime")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("SerialNumberId");
 
@@ -925,17 +909,11 @@ namespace TicketHub.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketHub.Models.Domain.TicketSerialNumber", "TicketSerialNumber")
-                        .WithMany()
-                        .HasForeignKey("SerialNumberId");
-
                     b.HasOne("TicketHub.Models.Domain.TicketTemplate", "TicketTemplate")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketTemplateId");
 
                     b.Navigation("Customer");
-
-                    b.Navigation("TicketSerialNumber");
 
                     b.Navigation("TicketTemplate");
                 });
@@ -944,7 +922,9 @@ namespace TicketHub.DataAccess.Migrations
                 {
                     b.HasOne("TicketHub.Models.Domain.TicketTemplate", "TicketTemplate")
                         .WithMany("TicketSerialNumbers")
-                        .HasForeignKey("TicketTemplateId");
+                        .HasForeignKey("TicketTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("TicketTemplate");
                 });

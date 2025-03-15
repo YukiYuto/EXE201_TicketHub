@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using TicketHub.DataAccess.Seeding;
 using TicketHub.Models.Domain;
 
 namespace TicketHub.DataAccess.Context;
@@ -21,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CartItem> CartItems { get; set; }
 
     public DbSet<Ticket> Tickets { get; set; }
+    public DbSet<TicketSerialNumber> TicketSerialNumbers { get; set; }
 
     //public DbSet<TicketTransfers> TicketTransfers { get; set; }
     public DbSet<TicketTemplate> TicketTemplates { get; set; }
@@ -41,10 +41,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
+
         /*// Seed data
 
-
+        ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
 
         modelBuilder.Entity<CartItem>()
             .HasOne(ci => ci.Cart)
@@ -255,5 +255,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(t => t.OrderId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TicketTemplate>()
+            .HasOne(t => t.Event)
+            .WithMany(e => e.TicketTemplates)
+            .HasForeignKey(t => t.EventId);
     }
 }

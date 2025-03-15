@@ -6,6 +6,7 @@ public interface IUnitOfWork
     IOrganizationRepository OrganizationRepository { get; }
     ITicketRepository TicketRepository { get; }
     ITicketTemplateRepository TicketTemplateRepository { get; }
+    ITicketSerialNumberRepository TicketSerialNumberRepository { get; }
     IEventRepository EventRepository { get; }
     ICategoryRepository CategoryRepository { get; }
     ICartRepository CartRepository { get; }

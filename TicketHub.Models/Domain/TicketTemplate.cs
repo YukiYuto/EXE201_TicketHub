@@ -20,4 +20,6 @@ public class TicketTemplate
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+
+    public virtual ICollection<TicketSerialNumber> TicketSerialNumbers { get; set; } = new List<TicketSerialNumber>();
 }

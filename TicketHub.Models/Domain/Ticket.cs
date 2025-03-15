@@ -14,12 +14,15 @@ public class Ticket
 {
     [Key] public Guid TicketId { get; set; }
     public Guid? TicketTemplateId { get; set; }
-    [ForeignKey("TicketTemplateId")] public virtual TicketTemplate TicketTemplate { get; set; } = null!;
+    [ForeignKey("TicketTemplateId")] public virtual TicketTemplate TicketTemplate { get; set; }
 
-    [StringLength(50)] public Guid CustomerId { get; set; }
+    public Guid CustomerId { get; set; }
     [ForeignKey("CustomerId")] public virtual Customer Customer { get; set; } = null!;
 
-    [StringLength(500)] public string TicketDescription { get; set; } = null!;
+    [StringLength(100)] public string TicketDescription { get; set; } = null!;
+
+    public Guid? SerialNumberId { get; set; }
+    [ForeignKey("SerialNumberId")] public virtual TicketSerialNumber TicketSerialNumber { get; set; }
     public bool IsFromExternal { get; set; } = false;
     public bool IsVisible { get; set; } = true;
 
