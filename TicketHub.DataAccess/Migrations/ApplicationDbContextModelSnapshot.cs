@@ -46,6 +46,29 @@ namespace TicketHub.DataAccess.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s",
+                            ConcurrencyStamp = "STAFF",
+                            Name = "STAFF",
+                            NormalizedName = "STAFF"
+                        },
+                        new
+                        {
+                            Id = "8fa7c7bb-daa5-a660-bf02-82301a5eb32a",
+                            ConcurrencyStamp = "ADMIN",
+                            Name = "ADMIN",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "a7782126-d76b-41c9-86d9-f41a026d107d",
+                            ConcurrencyStamp = "MANAGER",
+                            Name = "MANAGER",
+                            NormalizedName = "MANAGER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -133,6 +156,28 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "TicketHub-Admin",
+                            RoleId = "8fa7c7bb-daa5-a660-bf02-82301a5eb32a"
+                        },
+                        new
+                        {
+                            UserId = "StaffId",
+                            RoleId = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s"
+                        },
+                        new
+                        {
+                            UserId = "StaffId2",
+                            RoleId = "8fa7c7bb-b4dd-480d-a660-e07a90855d5s"
+                        },
+                        new
+                        {
+                            UserId = "ManagerId",
+                            RoleId = "a7782126-d76b-41c9-86d9-f41a026d107d"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -235,6 +280,96 @@ namespace TicketHub.DataAccess.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "TicketHub-Admin",
+                            AccessFailedCount = 0,
+                            Address = "123 Admin St",
+                            AvatarUrl = "https://example.com/avatar.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ConcurrencyStamp = "9b64b0ce-51cf-4504-b3f9-cb2bcf859f5d",
+                            Country = "Country",
+                            Email = "admin@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Admin User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "ADMIN@GMAIL.COM",
+                            NormalizedUserName = "ADMIN@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKmcYfiSKoK3ibPoO5PoArUZ6kkAkUIS3zeH8nueapmE5Fg+hYX2xNGruJgClZFbxg==",
+                            PhoneNumber = "1234567890",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "1af6f4dd-f151-4772-a870-5fd95e3a3c80",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@gmail.com"
+                        },
+                        new
+                        {
+                            Id = "StaffId2",
+                            AccessFailedCount = 0,
+                            Address = "456 Staff St",
+                            AvatarUrl = "https://example.com/avatarStaff2.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ConcurrencyStamp = "c741bb0e-0743-48f5-ad6b-677b08c73d68",
+                            Country = "Country",
+                            Email = "staff2@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Staff_2 User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "STAFF2@GMAIL.COM",
+                            NormalizedUserName = "STAFF2@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEfDOq19dMWzH7iXi6rjJmkvutrOn9fuRqk0f3nQJtCgA0Q+feLPnROfi2rtppOAvQ==",
+                            PhoneNumber = "0987654321",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "b356e3a0-125b-4b4d-b3cc-1514c775a8aa",
+                            TwoFactorEnabled = false,
+                            UserName = "staff2@gmail.com"
+                        },
+                        new
+                        {
+                            Id = "StaffId",
+                            AccessFailedCount = 0,
+                            Address = "123 Staff St",
+                            AvatarUrl = "https://example.com/avatarStaff.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ConcurrencyStamp = "9c3a311c-3580-43a4-b8e2-63a2a5f21a84",
+                            Country = "Country",
+                            Email = "staff1@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Staff_1 User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "STAFF1@GMAIL.COM",
+                            NormalizedUserName = "STAFF1@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAECZ1TSR1q6UEJw17XriNFbmN9Gp97bYkYuEP004lr8kYmYhkRSG0XaWzwMPMNP1AxA==",
+                            PhoneNumber = "0123456789",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "1182ec60-a4d1-4d8c-8811-b5263c335705",
+                            TwoFactorEnabled = false,
+                            UserName = "staff1@gmail.com"
+                        },
+                        new
+                        {
+                            Id = "ManagerId",
+                            AccessFailedCount = 0,
+                            Address = "789 Manager St",
+                            AvatarUrl = "https://example.com/avatarManager.png",
+                            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ConcurrencyStamp = "76d43009-ae9f-4a79-98e0-225b0fc43b80",
+                            Country = "Country",
+                            Email = "manager@gmail.com",
+                            EmailConfirmed = true,
+                            FullName = "Manager User",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "MANAGER@GMAIL.COM",
+                            NormalizedUserName = "MANAGER@GMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEiunn1vvx20boXyLXpUTHIrVsKGkBl2C7faGE2G4xEyi+cwoWighsgvUt6i/rHMNg==",
+                            PhoneNumber = "0981234567",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "225dde77-bc41-427b-a6c9-c82ac554980a",
+                            TwoFactorEnabled = false,
+                            UserName = "manager@gmail.com"
+                        });
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Cart", b =>
@@ -250,7 +385,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.CartItem", b =>
@@ -278,7 +413,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Category", b =>
@@ -314,7 +449,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Customer", b =>
@@ -339,7 +474,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Customer");
+                    b.ToTable("Customer", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Event", b =>
@@ -392,7 +527,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.OrderDetail", b =>
@@ -421,7 +556,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Orders", b =>
@@ -461,7 +596,7 @@ namespace TicketHub.DataAccess.Migrations
                     b.HasIndex("OrderNumber")
                         .IsUnique();
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Organizer", b =>
@@ -486,7 +621,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Organizers");
+                    b.ToTable("Organizers", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Payment", b =>
@@ -520,7 +655,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("OrderNumber");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.ResaleListing", b =>
@@ -565,7 +700,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("ResaleListings");
+                    b.ToTable("ResaleListings", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Ticket", b =>
@@ -605,7 +740,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.TicketSerialNumber", b =>
@@ -641,7 +776,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("TicketTemplateId");
 
-                    b.ToTable("TicketSerialNumbers");
+                    b.ToTable("TicketSerialNumbers", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.TicketTemplate", b =>
@@ -682,7 +817,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("TicketTemplates");
+                    b.ToTable("TicketTemplates", (string)null);
                 });
 
             modelBuilder.Entity("TicketHub.Models.Domain.Transaction", b =>
@@ -722,7 +857,7 @@ namespace TicketHub.DataAccess.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

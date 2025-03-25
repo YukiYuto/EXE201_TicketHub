@@ -48,11 +48,10 @@ public class ApplicationDbContextSeed
         {
             Id = adminUserId,
             FullName = "Admin User",
-            BirthDate = new DateTime(1990, 1, 1), // Set appropriate value
+            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc), // Set appropriate value
             AvatarUrl = "https://example.com/avatar.png", // Set appropriate value
             Country = "Country", // Set appropriate value
             Address = "123 Admin St",
-            //CCCD = "123456789123",
             UserName = "admin@gmail.com",
             NormalizedUserName = "ADMIN@GMAIL.COM",
             Email = "admin@gmail.com",
@@ -76,7 +75,7 @@ public class ApplicationDbContextSeed
         {
             Id = staffUserId,
             FullName = "Staff_1 User",
-            BirthDate = new DateTime(1990, 1, 1),
+            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             AvatarUrl = "https://example.com/avatarStaff.png",
             //CCCD = "123456789126",
             Country = "Country",
@@ -104,7 +103,7 @@ public class ApplicationDbContextSeed
         {
             Id = staffUserId2,
             FullName = "Staff_2 User",
-            BirthDate = new DateTime(1991, 2, 2),
+            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             AvatarUrl = "https://example.com/avatarStaff2.png",
             //CCCD = "123456789124",
             Country = "Country",
@@ -131,7 +130,7 @@ public class ApplicationDbContextSeed
         {
             Id = managerUserId,
             FullName = "Manager User",
-            BirthDate = new DateTime(1985, 5, 10), // Set appropriate value
+            BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc), // Set appropriate value
             AvatarUrl = "https://example.com/avatarManager.png", // Set appropriate value
             Country = "Country",
             Address = "789 Manager St",

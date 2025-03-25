@@ -86,6 +86,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(t => t.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+
+        modelBuilder.Entity<Event>()
+            .Property(u => u.EventDate)
+            .HasColumnType("timestamp with time zone");
         //  Quan hệ giữa Organizer và Event
         modelBuilder.Entity<Event>()
             .HasOne(e => e.Category)
