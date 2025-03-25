@@ -44,7 +44,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = StaticUserRoles.Admin)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> CreateCategory
     (
         [FromBody] CreateCategoryDto createCategoryDto
@@ -55,7 +55,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPut]
-    [Authorize(Roles = StaticUserRoles.Admin)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> UpdateCategory
     (
         [FromBody] UpdateCategoryDto updateCategoryDto
@@ -66,7 +66,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpDelete("{categoryId}")]
-    [Authorize(Roles = StaticUserRoles.Admin)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> DeleteCategory
     (
         [FromRoute] Guid categoryId

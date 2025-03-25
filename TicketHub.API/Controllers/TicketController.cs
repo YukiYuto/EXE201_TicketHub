@@ -20,7 +20,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpPost("create-ticket-template")]
-    [Authorize]
+    [Authorize(Roles = StaticUserRoles.Organization)]
     public async Task<ActionResult<ResponseDto>> CreateTicketTemplate(
         [FromBody] CreateTicketTemplateDto createTicketTemplateDto)
     {
@@ -43,6 +43,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("user")]
+    [Authorize]
     public async Task<ActionResult<ResponseDto>> GetTicketByUserId()
     {
         var responseDto = await _ticketService.GetTicketByUserId(User);

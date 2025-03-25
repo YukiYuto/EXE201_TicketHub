@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using TicketHub.DataAccess.Seeding;
 using TicketHub.Models.Domain;
 
 namespace TicketHub.DataAccess.Context;
@@ -44,7 +45,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         // Seed data
 
-        //ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
+        ApplicationDbContextSeed.SeedAdminAccount(modelBuilder);
 
 
         // Đảm bảo OrderNumber là unique

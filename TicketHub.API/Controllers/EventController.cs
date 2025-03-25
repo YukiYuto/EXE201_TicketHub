@@ -50,7 +50,7 @@ public class EventController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> CreateEvent
     (
         [FromBody] CreateEventDto createLocationDto
@@ -62,7 +62,7 @@ public class EventController : ControllerBase
 
     [HttpPut]
     [Authorize]
-    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> UpdateEvent
     (
         [FromBody] UpdateEventDto updateLocationDto
@@ -74,7 +74,7 @@ public class EventController : ControllerBase
 
     [HttpDelete("{eventId}")]
     [Authorize]
-    [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
     public async Task<ActionResult<ResponseDto>> DeleteEvent
     (
         [FromRoute] Guid eventId
