@@ -65,58 +65,6 @@ public class TicketSerialNumberService : ITicketSerialNumberService
         };
     }
 
-    public async Task<ResponseDto> GetTicketSerialNumbers
-    (
-        ClaimsPrincipal user,
-        string? filterOn,
-        string? filterQuery,
-        string? sortBy,
-        int pageNumber = 1,
-        int pageSize = 10
-    )
-    {
-        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-            return new ResponseDto
-            {
-                Message = "User not found",
-                IsSuccess = false,
-                StatusCode = 404
-            };
-
-        var orgainer = _unitOfWork.OrganizationRepository.GetAsync(o => o.UserId == userId);
-        if (orgainer == null)
-            return new ResponseDto
-            {
-                Message = "You are not an Organizer",
-                IsSuccess = false,
-                StatusCode = 404
-            };
-
-        var (ticketSerialNumbers, totalItems) =
-            await _unitOfWork.TicketSerialNumberRepository.GetTicketSerialNumberAsync(
-                filterOn,
-                filterQuery,
-                sortBy,
-                pageNumber,
-                pageSize
-            );
-
-        var resultDto = ticketSerialNumbers.Select(tsn => _mapper.Map<GetTicketSerialNumberDto>(tsn)).ToList();
-
-        return new ResponseDto
-        {
-            Message = "Ticket Serial Numbers found successfully",
-            IsSuccess = true,
-            StatusCode = 200,
-            Result = new
-            {
-                totalItems,
-                resultDto
-            }
-        };
-    }
-
     public async Task<ResponseDto> GetTicketSerialNumberById(ClaimsPrincipal user, Guid serialNumberId)
     {
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -202,5 +150,70 @@ public class TicketSerialNumberService : ITicketSerialNumberService
     public Task<ResponseDto> DeleteTicketSerialNumber(ClaimsPrincipal user, Guid serialNumberId)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<ResponseDto> GetTicketSerialNumbers
+    (
+        ClaimsPrincipal user,
+        string? filterOn,
+        string? filterQuery,
+        string? sortBy,
+        int pageNumber = 1,
+        int pageSize = 10,
+        Guid? ticketTemplateId = null
+    )
+    {
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return new ResponseDto
+            {
+                Message = "User not found",
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        var orgainer = await _unitOfWork.OrganizationRepository.GetAsync(o => o.UserId == userId);
+        if (orgainer == null)
+            return new ResponseDto
+            {
+                Message = "You are not an Organizer",
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        // Kiểm tra TicketTemplateId có tồn tại không
+        var ticketTemplate =
+            await _unitOfWork.TicketTemplateRepository.GetAsync(tt => tt.TicketTemplateId == ticketTemplateId);
+        if (ticketTemplate == null)
+            return new ResponseDto
+            {
+                Message = "Ticket Template not found",
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        var (ticketSerialNumbers, totalItems) =
+            await _unitOfWork.TicketSerialNumberRepository.GetTicketSerialNumberAsync(
+                filterOn,
+                filterQuery,
+                sortBy,
+                pageNumber,
+                pageSize,
+                ticketTemplateId
+            );
+
+        var resultDto = ticketSerialNumbers.Select(tsn => _mapper.Map<GetTicketSerialNumberDto>(tsn)).ToList();
+
+        return new ResponseDto
+        {
+            Message = "Ticket Serial Numbers found successfully",
+            IsSuccess = true,
+            StatusCode = 200,
+            Result = new
+            {
+                totalItems,
+                resultDto
+            }
+        };
     }
 }

@@ -29,6 +29,7 @@ public class TicketSerialNumberController : ControllerBase
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetTicketSerialNumbers(
+        [FromQuery] Guid? ticketTemplateId,
         [FromQuery] string? filterOn,
         [FromQuery] string? filterQuery,
         [FromQuery] string? sortBy,
@@ -43,7 +44,8 @@ public class TicketSerialNumberController : ControllerBase
                 filterQuery,
                 sortBy,
                 pageNumber,
-                pageSize
+                pageSize,
+                ticketTemplateId
             );
         return StatusCode(responseDto.StatusCode, responseDto);
     }

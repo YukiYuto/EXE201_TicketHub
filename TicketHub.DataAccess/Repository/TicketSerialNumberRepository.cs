@@ -25,7 +25,8 @@ public class TicketSerialNumberRepository : Repository<TicketSerialNumber>, ITic
         string? filterQuery,
         string? sortBy,
         int pageNumber,
-        int pageSize
+        int pageSize,
+        Guid? ticketTemplateId = null
     )
     {
         IQueryable<TicketSerialNumber> query = _context.TicketSerialNumbers.Include(t => t.TicketTemplate);

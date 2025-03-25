@@ -16,7 +16,8 @@ public interface ITicketSerialNumberService
         string? filterQuery,
         string? sortBy,
         int pageNumber = 1,
-        int pageSize = 10
+        int pageSize = 10,
+        Guid? ticketTemplateId = null
     );
 
     Task<ResponseDto> GetTicketSerialNumberById(ClaimsPrincipal user, Guid serialNumberId);

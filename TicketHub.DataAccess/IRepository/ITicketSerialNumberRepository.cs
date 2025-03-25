@@ -12,6 +12,7 @@ public interface ITicketSerialNumberRepository : IRepository<TicketSerialNumber>
         string? filterQuery,
         string? sortBy,
         int pageNumber,
-        int pageSize
+        int pageSize,
+        Guid? ticketTemplateId = null
     );
 }
