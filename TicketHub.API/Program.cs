@@ -25,10 +25,17 @@ public class Program
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
         // Configure DbContext with SQL Server
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        /*builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(
                 builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnectionAzure));
+        });*/
+
+        // Configure DbContext with  PsSQL
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(
+                builder.Configuration.GetConnectionString(StaticConnectionString.SqldbDefaultConnectionAiven));
         });
 
         // Configure Identity
@@ -146,7 +153,7 @@ public class Program
         app.UseAuthorization();
 
         // Apply database migrations
-        //ApplyMigration(app);
+        ApplyMigration(app);
 
         // Kích hoạt Swagger middleware  
         if (app.Environment.IsDevelopment())
@@ -164,12 +171,12 @@ public class Program
     }
 
     //auto update database
-    /*private static void ApplyMigration(IApplicationBuilder app)
+    private static void ApplyMigration(IApplicationBuilder app)
     {
         using (var scope = app.ApplicationServices.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             if (context.Database.GetPendingMigrations().Any()) context.Database.Migrate();
         }
-    }*/
+    }
 }
