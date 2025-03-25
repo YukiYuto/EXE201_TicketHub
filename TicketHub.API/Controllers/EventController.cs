@@ -41,16 +41,16 @@ public class EventController : ControllerBase
         var responseDto = await _eventService.GetEvent(User, eventId);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
-    
-    [HttpGet("{userId}")]
-    public async Task<ActionResult<ResponseDto>> GetEventByUserId([FromRoute] Guid userId)
+
+    [HttpGet("userId")]
+    public async Task<ActionResult<ResponseDto>> GetEventByUserId()
     {
-        var responseDto = await _eventService.GetEventByUserId(User, userId);
+        var responseDto = await _eventService.GetEventByUserId(User);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
     [HttpPost]
-    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaffOrganization)]
     public async Task<ActionResult<ResponseDto>> CreateEvent
     (
         [FromBody] CreateEventDto createLocationDto
@@ -62,7 +62,7 @@ public class EventController : ControllerBase
 
     [HttpPut]
     [Authorize]
-    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaffOrganization)]
     public async Task<ActionResult<ResponseDto>> UpdateEvent
     (
         [FromBody] UpdateEventDto updateLocationDto
@@ -74,7 +74,7 @@ public class EventController : ControllerBase
 
     [HttpDelete("{eventId}")]
     [Authorize]
-    [Authorize(Roles = StaticUserRoles.ManagerStaff)]
+    [Authorize(Roles = StaticUserRoles.ManagerStaffOrganization)]
     public async Task<ActionResult<ResponseDto>> DeleteEvent
     (
         [FromRoute] Guid eventId

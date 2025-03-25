@@ -4,7 +4,6 @@ using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 using TicketHub.Models.DTO;
 using TicketHub.Models.DTO.Event;
-using TicketHub.Models.DTO.TicketTemplate;
 using TicketHub.Services.IService;
 
 namespace TicketHub.Services.Service;
@@ -120,21 +119,7 @@ public class EventService : IEventService
             Location = eventItem.Location,
             EventDescription = eventItem.EventDescription,
             Status = eventItem.Status,
-            EventImage = eventItem.EventImage,
-            CategoryId = eventItem.CategoryId,
-            /*TicketTemplates = ticketTemplates
-                .Where(t => t.EventId == eventItem.EventId)
-                .Select(t => new GetTicketTemplateDto
-                {
-                    EventId = eventItem.EventId,
-                    TicketTemplateId = t.TicketTemplateId,
-                    TicketName = t.TicketName,
-                    TicketPrice = t.TicketPrice,
-                    TotalQuantity = t.TotalQuantity,
-                    AvailableQuantity = t.AvailableQuantity,
-                    ImageTicket = t.ImageTicket,
-                    Rank = t.Rank
-                }).ToList()*/
+            EventImage = eventItem.EventImage
         }).ToList();
 
         return new ResponseDto
@@ -170,71 +155,7 @@ public class EventService : IEventService
             EventDescription = eventEntity.EventDescription,
             Status = eventEntity.Status,
             EventImage = eventEntity.EventImage,
-            CategoryId = eventEntity.CategoryId,
-            /*TicketTemplates = ticketTemplates
-                .Select(t => new GetTicketTemplateDto
-                {
-                    EventId = eventEntity.EventId,
-                    TicketTemplateId = t.TicketTemplateId,
-                    TicketName = t.TicketName,
-                    TicketPrice = t.TicketPrice,
-                    TotalQuantity = t.TotalQuantity,
-                    AvailableQuantity = t.AvailableQuantity,
-                    ImageTicket = t.ImageTicket,
-                    Rank = t.Rank
-                }).ToList()*/
-        };
-
-        return new ResponseDto
-        {
-            Message = "Event found successfully",
-            Result = eventDto,
-            IsSuccess = true,
-            StatusCode = 200
-        };
-    }
-    
-    public async Task<ResponseDto> GetEventByUserId(ClaimsPrincipal user, Guid userId)
-    {
-        var customer = await _unitOfWork.CustomerRepository.GetAsync(x => x.UserId == userId.ToString());
-        
-        var ticket = await _unitOfWork.TicketRepository.GetAsync(x => x.CustomerId == customer.CustomerId);
-        
-        var ticketTemplate = await _unitOfWork.TicketTemplateRepository.GetAsync(x => x.TicketTemplateId == ticket.TicketTemplateId);
-        
-        var events = await _unitOfWork.EventRepository.GetAsync(x => x.EventId == ticketTemplate.EventId);
-            
-        if (events == null)
-            return new ResponseDto
-            {
-                Message = "Event not found",
-                Result = null,
-                IsSuccess = false,
-                StatusCode = 404
-            };
-
-        var eventDto = new GetEventDto
-        {
-            EventId = events.EventId,
-            EventName = events.EventName,
-            EventDate = events.EventDate,
-            Location = events.Location,
-            EventDescription = events.EventDescription,
-            Status = events.Status,
-            EventImage = events.EventImage,
-            CategoryId = events.CategoryId,
-            /*TicketTemplates = listTicketTemplates
-                .Select(t => new GetTicketTemplateDto
-                {
-                    EventId = events.EventId,
-                    TicketTemplateId = t.TicketTemplateId,
-                    TicketName = t.TicketName,
-                    TicketPrice = t.TicketPrice,
-                    TotalQuantity = t.TotalQuantity,
-                    AvailableQuantity = t.AvailableQuantity,
-                    ImageTicket = t.ImageTicket,
-                    Rank = t.Rank
-                }).ToList()*/
+            CategoryId = eventEntity.CategoryId
         };
 
         return new ResponseDto
@@ -255,42 +176,19 @@ public class EventService : IEventService
             EventId = eventId,
             EventName = createEventDto.EventName,
             EventDescription = createEventDto.EventDescription,
-            EventDate = createEventDto.EventDate,
+            EventDate = DateTime.SpecifyKind(createEventDto.EventDate, DateTimeKind.Utc).ToUniversalTime(),
             CreatedBy = user.Identity!.Name,
             Location = createEventDto.Location,
             CategoryId = createEventDto.CategoryId,
             UpdatedBy = "",
-            CreatedTime = DateTime.Now,
+            CreatedTime = DateTime.UtcNow.AddHours(7),
             UpdatedTime = null,
             Status = 1,
             EventImage = createEventDto.EventImage
         };
 
         await _unitOfWork.EventRepository.AddAsync(newEvent);
-
-        /*var ticketTemplates = new List<TicketTemplate>();*/
-
-        // Create Ticket Template
-        /*foreach (var ticketTemplate in createEventDto.TicketTemplates)
-        {
-            var newTicketTemplate = new TicketTemplate
-            {
-                TicketTemplateId = Guid.NewGuid(),
-                EventId = eventId,
-                TicketName = ticketTemplate.TicketName,
-                TicketPrice = ticketTemplate.TicketPrice,
-                TotalQuantity = ticketTemplate.TotalQuantity,
-                AvailableQuantity = ticketTemplate.TotalQuantity,
-                ImageTicket = ticketTemplate.ImageTicket,
-                Rank = ticketTemplate.Rank,
-                IsValid = true
-            };
-
-            await _unitOfWork.TicketTemplateRepository.AddAsync(newTicketTemplate);
-            ticketTemplates.Add(newTicketTemplate);
-        }
-
-        await _unitOfWork.SaveAsync();*/
+        await _unitOfWork.SaveAsync();
 
         // Tạo đối tượng trả về
         var eventResponse = new
@@ -303,19 +201,7 @@ public class EventService : IEventService
             newEvent.Location,
             newEvent.CategoryId,
             newEvent.Status,
-            newEvent.EventImage,
-            /*TicketTemplates = ticketTemplates.Select(t => new
-            {
-                newEvent.EventId,
-                t.TicketTemplateId,
-                t.TicketName,
-                t.TicketPrice,
-                t.TotalQuantity,s
-                t.AvailableQuantity,
-                t.ImageTicket,
-                t.Rank,
-                t.IsValid
-            }).ToList()*/
+            newEvent.EventImage
         };
 
         return new ResponseDto
@@ -354,30 +240,6 @@ public class EventService : IEventService
         _unitOfWork.EventRepository.Update(eventId);
         var save = await _unitOfWork.SaveAsync();
 
-        //update ticket template
-        /*var ticketTemplates =
-            await _unitOfWork.TicketTemplateRepository.GetAllAsync(x => x.EventId == updateEventDto.EventId);
-        foreach (var ticketTemplate in ticketTemplates)
-        {
-            var updateTicketTemplate =
-                updateEventDto.TicketTemplates.FirstOrDefault(
-                    t => t.TicketTemplateId == ticketTemplate.TicketTemplateId);
-            if (updateTicketTemplate != null)
-            {
-                ticketTemplate.TicketName = updateTicketTemplate.TicketName;
-                ticketTemplate.TicketPrice = updateTicketTemplate.TicketPrice;
-                ticketTemplate.TotalQuantity = updateTicketTemplate.TotalQuantity;
-                ticketTemplate.AvailableQuantity = updateTicketTemplate.AvailableQuantity;
-                ticketTemplate.ImageTicket = updateTicketTemplate.ImageTicket;
-                ticketTemplate.Rank = updateTicketTemplate.Rank;
-
-                _unitOfWork.TicketTemplateRepository.Update(ticketTemplate);
-            }
-        }
-
-        //save changes
-        var saveTicketTemplate = await _unitOfWork.SaveAsync();*/
-
         // Tạo đối tượng trả về
         var eventResponse = new
         {
@@ -389,18 +251,7 @@ public class EventService : IEventService
             eventId.Location,
             eventId.CategoryId,
             eventId.Status,
-            eventId.EventImage,
-            /*TicketTemplates = ticketTemplates.Select(t => new
-            {
-                eventId.EventId,
-                t.TicketTemplateId,
-                t.TicketName,
-                t.TicketPrice,
-                t.TotalQuantity,
-                t.AvailableQuantity,
-                t.ImageTicket,
-                t.Rank
-            }).ToList()*/
+            eventId.EventImage
         };
 
         return new ResponseDto
@@ -465,19 +316,7 @@ public class EventService : IEventService
             EventDescription = events.EventDescription,
             Status = events.Status,
             EventImage = events.EventImage,
-            CategoryId = events.CategoryId,
-            /*TicketTemplates = listTicketTemplates
-                .Select(t => new GetTicketTemplateDto
-                {
-                    EventId = events.EventId,
-                    TicketTemplateId = t.TicketTemplateId,
-                    TicketName = t.TicketName,
-                    TicketPrice = t.TicketPrice,
-                    TotalQuantity = t.TotalQuantity,
-                    AvailableQuantity = t.AvailableQuantity,
-                    ImageTicket = t.ImageTicket,
-                    Rank = t.Rank
-                }).ToList()*/
+            CategoryId = events.CategoryId
         };
 
         return new ResponseDto
@@ -486,6 +325,50 @@ public class EventService : IEventService
             Result = eventDto,
             IsSuccess = true,
             StatusCode = 201
+        };
+    }
+
+    public async Task<ResponseDto> GetEventByUserId(ClaimsPrincipal user)
+    {
+        var userId = user.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrEmpty(userId))
+            return new ResponseDto
+            {
+                Message = "User ID not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 400
+            };
+
+        var events = await _unitOfWork.EventRepository.GetAsync(x => x.CreatedBy == userId);
+
+        if (events == null)
+            return new ResponseDto
+            {
+                Message = "Event not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+
+        var eventDto = new GetEventDto
+        {
+            EventId = events.EventId,
+            EventName = events.EventName,
+            EventDate = events.EventDate,
+            Location = events.Location,
+            EventDescription = events.EventDescription,
+            Status = events.Status,
+            EventImage = events.EventImage,
+            CategoryId = events.CategoryId
+        };
+
+        return new ResponseDto
+        {
+            Message = "Event found successfully",
+            Result = eventDto,
+            IsSuccess = true,
+            StatusCode = 200
         };
     }
 }
