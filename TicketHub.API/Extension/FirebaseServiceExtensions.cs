@@ -1,8 +1,8 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using TicketHub.Services.IService;
 using TicketHub.Services.Service;
-using FirebaseAdmin;
 
 namespace TicketHub.API.Extension;
 
@@ -12,7 +12,7 @@ public static class FirebaseServiceExtensions
     {
         var credentialPath = Path.Combine(Directory.GetCurrentDirectory(),
             "tickethub-af919-firebase-adminsdk-wlfom-8e5e557587.json");
-        FirebaseApp.Create(new AppOptions()
+        FirebaseApp.Create(new AppOptions
         {
             Credential = GoogleCredential.FromFile(credentialPath)
         });

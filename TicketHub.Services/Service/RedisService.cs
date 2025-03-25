@@ -13,7 +13,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// This method for upload data to redis cloud
+    ///     This method for upload data to redis cloud
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
@@ -26,7 +26,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// This method for get data from redis cloud
+    ///     This method for get data from redis cloud
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>
@@ -38,7 +38,7 @@ public class RedisService : IRedisService
     }
 
     /// <summary>
-    /// This method for delete data from redis cloud
+    ///     This method for delete data from redis cloud
     /// </summary>
     /// <param name="key"></param>
     /// <returns></returns>

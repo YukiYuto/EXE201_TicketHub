@@ -21,22 +21,17 @@ public class SignUpOrganizationDto
     [ConfirmPassword("Password")]
     [NotMapped]
     public string ConfirmPassword { get; set; } = null!;
- 
-    [Required]
-    [StringLength(50)]
-    public string? TaxId { get; set; }
-    
+
+    [Required] [StringLength(50)] public string? TaxId { get; set; }
+
     [Required]
     [DataType(DataType.PhoneNumber)]
     [Phone]
     public string PhoneNumber { get; set; } = null!;
- 
-    [Required]
-    public string OrganizationName { get; set; } = null!;
 
-    [Required]
-    public string Country { get; set; } = null!;
- 
-    [Required]
-    public string Address { get; set; } = null!;
+    [Required] public string OrganizationName { get; set; } = null!;
+
+    [Required] public string Country { get; set; } = null!;
+
+    [Required] public string Address { get; set; } = null!;
 }

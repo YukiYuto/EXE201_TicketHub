@@ -1,63 +1,60 @@
 ﻿using TicketHub.Utility.Constants;
 
-namespace TicketHub.Utility.Templates.Email
+namespace TicketHub.Utility.Templates.Email;
+
+/// <summary>
+///     GenericEmailTemplate: A class that represents a generic email
+///     This contains the default values for the fields that are required for an email
+/// </summary>
+public class GenericEmailTemplate
 {
-    /// <summary>
-    /// GenericEmailTemplate: A class that represents a generic email 
-    /// This contains the default values for the fields that are required for an email 
-    /// </summary>
-    public class GenericEmailTemplate
+    protected GenericEmailTemplate()
     {
-        public virtual string TemplateName { get; set; } = StaticEmailTemplates.Default;
-        public virtual string? SenderName { get; set; } = StaticEmailSettings.SenderName;
-        public virtual string? SenderEmail { get; set; } = StaticEmailSettings.SenderEmail;
-        public virtual string Category { get; set; } = "General";
-        public virtual string Subject { get; set; } = "No Subject";
-        public virtual string? PreHeaderText { get; set; } = "";
-        public virtual string? PersonalizationTags { get; set; } = "";
-        public virtual string BodyContent { get; set; } = "Default body content.";
-        public virtual string? FooterContent { get; set; } = "Default footer content.";
-        public virtual string? CallToAction { get; set; } = "#";
-        public virtual string? CallToActionText { get; set; } = "Click here";
-        public virtual string? Language { get; set; } = "en-US";
-        public virtual string? RecipientType { get; set; } = "General";
+    }
 
-        protected GenericEmailTemplate()
-        {
-        }
+    public virtual string TemplateName { get; set; } = StaticEmailTemplates.Default;
+    public virtual string? SenderName { get; set; } = StaticEmailSettings.SenderName;
+    public virtual string? SenderEmail { get; set; } = StaticEmailSettings.SenderEmail;
+    public virtual string Category { get; set; } = "General";
+    public virtual string Subject { get; set; } = "No Subject";
+    public virtual string? PreHeaderText { get; set; } = "";
+    public virtual string? PersonalizationTags { get; set; } = "";
+    public virtual string BodyContent { get; set; } = "Default body content.";
+    public virtual string? FooterContent { get; set; } = "Default footer content.";
+    public virtual string? CallToAction { get; set; } = "#";
+    public virtual string? CallToActionText { get; set; } = "Click here";
+    public virtual string? Language { get; set; } = "en-US";
+    public virtual string? RecipientType { get; set; } = "General";
 
-        /// <summary>
-        /// Replace placeholders in the email template with the values from the placeholders dictionary.
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="placeholders"></param>
-        /// <returns> The content with the placeholders set with actual values </returns>
-        protected string ReplacePlaceholders(string content, Dictionary<string, string> placeholders)
-        {
-            foreach (var placeholder in placeholders)
-            {
-                content = content.Replace($"{{{{{placeholder.Key}}}}}", placeholder.Value);
-            }
+    /// <summary>
+    ///     Replace placeholders in the email template with the values from the placeholders dictionary.
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="placeholders"></param>
+    /// <returns> The content with the placeholders set with actual values </returns>
+    protected string ReplacePlaceholders(string content, Dictionary<string, string> placeholders)
+    {
+        foreach (var placeholder in placeholders)
+            content = content.Replace($"{{{{{placeholder.Key}}}}}", placeholder.Value);
 
-            return content;
-        }
+        return content;
+    }
 
-        /// <summary>
-        /// Render: A method that renders the email template with the placeholders replaced with the actual values
-        /// </summary>
-        /// <param name="placeholders"></param>
-        /// <returns> An HTML-formatted string that contains the passed values </returns>
-        public virtual string Render(Dictionary<string, string> placeholders)
-        {
-            var subject = ReplacePlaceholders(Subject, placeholders);
-            var preHeaderText = ReplacePlaceholders(PreHeaderText ?? "", placeholders);
-            var bodyContent = ReplacePlaceholders(BodyContent, placeholders);
-            var callToActionUrl = ReplacePlaceholders(CallToAction ?? "#", placeholders);
-            var callToActionText = ReplacePlaceholders(CallToActionText!, placeholders);
-            var footerContent = ReplacePlaceholders(FooterContent ?? "", placeholders);
+    /// <summary>
+    ///     Render: A method that renders the email template with the placeholders replaced with the actual values
+    /// </summary>
+    /// <param name="placeholders"></param>
+    /// <returns> An HTML-formatted string that contains the passed values </returns>
+    public virtual string Render(Dictionary<string, string> placeholders)
+    {
+        var subject = ReplacePlaceholders(Subject, placeholders);
+        var preHeaderText = ReplacePlaceholders(PreHeaderText ?? "", placeholders);
+        var bodyContent = ReplacePlaceholders(BodyContent, placeholders);
+        var callToActionUrl = ReplacePlaceholders(CallToAction ?? "#", placeholders);
+        var callToActionText = ReplacePlaceholders(CallToActionText!, placeholders);
+        var footerContent = ReplacePlaceholders(FooterContent ?? "", placeholders);
 
-            return (
-                $@"
+        return $@"
                 <html lang='en' style='margin: 0; padding: 0;'>
                     <head>
                         <meta charset='UTF-8'>
@@ -161,8 +158,6 @@ namespace TicketHub.Utility.Templates.Email
                             </div>
                         </div>
                     </body>
-                </html>"
-            );
-        }
+                </html>";
     }
 }

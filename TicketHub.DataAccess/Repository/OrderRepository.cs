@@ -43,7 +43,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         // Tạo số mới lớn hơn số lớn nhất 1 đơn vị
         return maxOrderNumber + 1;
     }
-    
+
     public async Task<Orders?> GetByIdAsync(Guid orderId)
     {
         return await _context.Orders.FindAsync(orderId);

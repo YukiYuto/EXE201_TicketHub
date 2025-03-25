@@ -9,9 +9,8 @@ public class Category : BaseEntity<string, string, int>
     [StringLength(50)] public string CategoryName { get; set; } = null!;
     public Guid? ParentCategoryId { get; set; }
 
-    [ForeignKey("ParentCategoryId")]
-    public virtual Category? ParentCategory { get; set; }
-    
-    [NotMapped] public List<Category> SubCategories { get; set; } = new List<Category>();
+    [ForeignKey("ParentCategoryId")] public virtual Category? ParentCategory { get; set; }
+
+    [NotMapped] public List<Category> SubCategories { get; set; } = new();
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 }

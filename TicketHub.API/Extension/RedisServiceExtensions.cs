@@ -7,7 +7,7 @@ public static class RedisServiceExtensions
 {
     public static WebApplicationBuilder AddRedisCache(this WebApplicationBuilder builder)
     {
-        string connectionString =
+        var connectionString =
             builder.Configuration.GetSection("Redis")[StaticConnectionString.RedisConnectionString];
         builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(connectionString));
         return builder;

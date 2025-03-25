@@ -17,6 +17,7 @@ public interface IEventService
     );
 
     Task<ResponseDto> GetEvent(ClaimsPrincipal user, Guid eventId);
+    Task<ResponseDto> GetEventByUserId(ClaimsPrincipal user, Guid userId);
     Task<ResponseDto> CreateEvent(ClaimsPrincipal user, CreateEventDto createEventDto);
     Task<ResponseDto> UpdateEvent(ClaimsPrincipal user, UpdateEventDto updateEventDto);
     Task<ResponseDto> DeleteEvent(ClaimsPrincipal user, Guid eventId);

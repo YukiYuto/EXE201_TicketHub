@@ -10,8 +10,8 @@ namespace TicketHub.Services.Service;
 
 public class CategoryService : ICategoryService
 {
+    private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
-    private IMapper _mapper;
 
     public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -36,31 +36,25 @@ public class CategoryService : ICategoryService
 
         // Kiểm tra nếu danh sách events là null hoặc rỗng
         if (!allCateogories.Any())
-        {
-            return new ResponseDto()
+            return new ResponseDto
             {
                 Message = "There are no Category",
                 IsSuccess = true,
                 StatusCode = 404,
                 Result = null
             };
-        }
 
         var listCateogories = allCateogories.ToList();
 
         // Filter Query
         if (!string.IsNullOrEmpty(filterOn) && !string.IsNullOrEmpty(filterQuery))
-        {
             switch (filterOn.Trim().ToLower())
             {
                 case "cateogryname":
                     listCateogories = listCateogories.Where(x =>
                         x.CategoryName.Contains(filterQuery, StringComparison.CurrentCultureIgnoreCase)).ToList();
                     break;
-                default:
-                    break;
             }
-        }
 
         if (!string.IsNullOrEmpty(sortBy))
         {
@@ -95,14 +89,14 @@ public class CategoryService : ICategoryService
         }
 
         // Chuyển đổi danh sách sự kiện thành DTO
-        var categoryDto = listCateogories.Select(categoryItem => new GetCategoryDto()
+        var categoryDto = listCateogories.Select(categoryItem => new GetCategoryDto
         {
             CategoryId = categoryItem.CategoryId,
             CategoryName = categoryItem.CategoryName,
             ParentCategoryId = categoryItem.ParentCategoryId
         }).ToList();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Get Categories successfully",
             IsSuccess = true,
@@ -116,7 +110,6 @@ public class CategoryService : ICategoryService
         // Lấy danh mục theo ID  
         var category = await _unitOfWork.CategoryRepository.GetById(categoryId);
         if (category == null)
-        {
             return new ResponseDto
             {
                 Message = "Category not found",
@@ -124,7 +117,6 @@ public class CategoryService : ICategoryService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         // Khởi tạo DTO cho danh mục  
         var categoryDto = _mapper.Map<GetCategoryByIdDto>(category);
@@ -133,18 +125,13 @@ public class CategoryService : ICategoryService
         if (category.ParentCategoryId.HasValue)
         {
             var parentCategory = await _unitOfWork.CategoryRepository.GetById(category.ParentCategoryId.Value);
-            if (parentCategory != null)
-            {
-                categoryDto.ParentCategoryName = parentCategory.CategoryName;
-            }
+            if (parentCategory != null) categoryDto.ParentCategoryName = parentCategory.CategoryName;
         }
 
         // Lấy danh sách các danh mục con  
         var subcategories = await _unitOfWork.CategoryRepository.GetSubcategories(categoryId);
         if (subcategories != null && subcategories.Any())
-        {
             categoryDto.SubcategoryNames = subcategories.Select(sub => sub.CategoryName).ToList();
-        }
 
         return new ResponseDto
         {
@@ -158,7 +145,7 @@ public class CategoryService : ICategoryService
     public async Task<ResponseDto> CreateCategory(ClaimsPrincipal user, CreateCategoryDto createCategoryDto)
     {
         // Kiểm tra và parse ParentCategoryId nếu có
-        Guid? parentCategoryId = Guid.TryParse(createCategoryDto.ParentCategoryId, out var guidOutput)
+        var parentCategoryId = Guid.TryParse(createCategoryDto.ParentCategoryId, out var guidOutput)
             ? guidOutput
             : (Guid?)null;
 
@@ -170,7 +157,7 @@ public class CategoryService : ICategoryService
             ParentCategoryId = parentCategoryId,
             CreatedTime = DateTime.UtcNow,
             CreatedBy = user.Identity.Name,
-            Status = 0,
+            Status = 0
         };
 
         // Thêm category vào cơ sở dữ liệu
@@ -179,14 +166,12 @@ public class CategoryService : ICategoryService
 
         // Kiểm tra kết quả lưu vào cơ sở dữ liệu
         if (result <= 0)
-        {
             return new ResponseDto
             {
                 Message = "Failed to create category",
                 IsSuccess = false,
                 StatusCode = 500
             };
-        }
 
         return new ResponseDto
         {
@@ -202,7 +187,6 @@ public class CategoryService : ICategoryService
         var categoryId =
             await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == updateCategoryDto.CategoryId);
         if (categoryId == null)
-        {
             return new ResponseDto
             {
                 Message = "Category not found",
@@ -210,7 +194,6 @@ public class CategoryService : ICategoryService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         //update Category
         categoryId.CategoryName = updateCategoryDto.CategoryName;
@@ -236,7 +219,6 @@ public class CategoryService : ICategoryService
     {
         var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == categoryId);
         if (category == null)
-        {
             return new ResponseDto
             {
                 Message = "Category not found",
@@ -244,7 +226,6 @@ public class CategoryService : ICategoryService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         category.Status = 0;
         category.UpdatedBy = user.Identity.Name;
@@ -254,7 +235,7 @@ public class CategoryService : ICategoryService
         _unitOfWork.CategoryRepository.Update(category);
         var save = await _unitOfWork.SaveAsync();
 
-        return new ResponseDto()
+        return new ResponseDto
         {
             Message = "Category delete successfully",
             Result = category,
@@ -262,12 +243,11 @@ public class CategoryService : ICategoryService
             StatusCode = 201
         };
     }
-    
+
     public async Task<ResponseDto> SearchCategory(ClaimsPrincipal user, string nameCategory)
     {
         var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryName == nameCategory);
         if (category == null)
-        {
             return new ResponseDto
             {
                 Message = "Category not found",
@@ -275,7 +255,6 @@ public class CategoryService : ICategoryService
                 IsSuccess = false,
                 StatusCode = 404
             };
-        }
 
         return new ResponseDto
         {

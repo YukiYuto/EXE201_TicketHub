@@ -7,7 +7,7 @@ namespace TicketHub.DataAccess.Repository;
 public class TransactionRepository : Repository<Transaction>, ITransactionRepository
 {
     private readonly ApplicationDbContext _context;
-    
+
     public TransactionRepository(ApplicationDbContext context) : base(context)
     {
         _context = context;

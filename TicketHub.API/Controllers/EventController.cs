@@ -41,6 +41,13 @@ public class EventController : ControllerBase
         var responseDto = await _eventService.GetEvent(User, eventId);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
+    
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<ResponseDto>> GetEventByUserId([FromRoute] Guid userId)
+    {
+        var responseDto = await _eventService.GetEventByUserId(User, userId);
+        return StatusCode(responseDto.StatusCode, responseDto);
+    }
 
     [HttpPost]
     [Authorize(Roles = StaticUserRoles.AdminManagerStaff)]

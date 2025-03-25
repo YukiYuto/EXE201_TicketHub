@@ -1,9 +1,9 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
-using TicketHub.Utility.Constants;
-using TicketHub.Utility.Templates.Email;
 using MimeKit;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
+using TicketHub.Utility.Templates.Email;
 
 namespace TicketHub.Services.Service;
 
@@ -74,9 +74,10 @@ public class EmailService : IEmailService
         }
     }
 
-    private async Task<bool> SendEmailFromTemplateAsync(string toEmail, GenericEmailTemplate template, Dictionary<string, string> placeholders)
+    private async Task<bool> SendEmailFromTemplateAsync(string toEmail, GenericEmailTemplate template,
+        Dictionary<string, string> placeholders)
     {
-        string body = template.Render(placeholders);
+        var body = template.Render(placeholders);
         return await SendEmailAsync(toEmail, template.Subject, body);
     }
 }

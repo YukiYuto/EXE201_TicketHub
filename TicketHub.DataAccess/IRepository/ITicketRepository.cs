@@ -9,4 +9,6 @@ public interface ITicketRepository : IRepository<Ticket>
         Expression<Func<Ticket, bool>> filter,
         Func<IQueryable<Ticket>, IQueryable<Ticket>> includes
     );
+
+    Task<Ticket> GeTicketById(Guid ticketId);
 }

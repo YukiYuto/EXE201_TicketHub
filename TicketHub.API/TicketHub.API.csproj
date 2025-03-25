@@ -1,32 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.13">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.13">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="FirebaseAdmin" Version="3.1.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.13">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.13">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.2.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\TicketHub.DataAccess\TicketHub.DataAccess.csproj" />
-    <ProjectReference Include="..\TicketHub.Services\TicketHub.Services.csproj" />
-    <ProjectReference Include="..\TicketHub.Utility\TicketHub.Utility.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\TicketHub.DataAccess\TicketHub.DataAccess.csproj"/>
+        <ProjectReference Include="..\TicketHub.Services\TicketHub.Services.csproj"/>
+        <ProjectReference Include="..\TicketHub.Utility\TicketHub.Utility.csproj"/>
+    </ItemGroup>
 
 </Project>

@@ -8,6 +8,6 @@ public class AvatarUploadDto
 {
     [Required]
     [MaxFileSize(1)]
-    [AllowedExtensions(new string[] { ".jpg", ".jpeg", ".png" })]
+    [AllowedExtensions(new[] { ".jpg", ".jpeg", ".png" })]
     public IFormFile File { get; set; } = null!;
 }

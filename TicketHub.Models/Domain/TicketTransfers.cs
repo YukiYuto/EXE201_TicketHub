@@ -8,7 +8,7 @@ public class TicketTransfers
     [Key] public Guid TicketTransferId { get; set; }
     public Guid TicketId { get; set; }
     [ForeignKey("TicketId")] public virtual Ticket Ticket { get; set; } = null!;
-    
+
     public Guid? ResaleListingId { get; set; }
     [ForeignKey("ResaleListingId")] public virtual ResaleListing? ResaleListing { get; set; } = null!;
 

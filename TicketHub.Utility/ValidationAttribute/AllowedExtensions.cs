@@ -18,9 +18,7 @@ public class AllowedExtensions : System.ComponentModel.DataAnnotations.Validatio
         {
             var extension = Path.GetExtension(file.FileName);
             if (!_extensions.Contains(extension.ToLower()))
-            {
                 return new ValidationResult("This photo extension is not allowed!");
-            }
         }
 
         return ValidationResult.Success;

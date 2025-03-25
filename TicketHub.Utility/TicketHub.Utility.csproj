@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>TicketHub.Utility</RootNamespace>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>TicketHub.Utility</RootNamespace>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="12.0.0-preview1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="6.0.0-preview.4.21253.5" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="12.0.0-preview1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="6.0.0-preview.4.21253.5"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ValidationAttribute\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="ValidationAttribute\"/>
+    </ItemGroup>
 
 </Project>

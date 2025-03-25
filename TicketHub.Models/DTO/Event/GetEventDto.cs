@@ -14,5 +14,4 @@ public class GetEventDto
     public string? EventImage { get; set; }
 
     public Guid CategoryId { get; set; }
-    public List<GetTicketTemplateDto> TicketTemplates { get; set; } = new();
 }

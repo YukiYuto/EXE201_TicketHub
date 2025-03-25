@@ -26,4 +26,9 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
 
         return await query.AsNoTracking().ToListAsync();
     }
+
+    public async Task<Ticket> GeTicketById(Guid ticketId)
+    {
+        return  await _context.Tickets.FirstOrDefaultAsync(t => t.TicketId == ticketId);
+    }
 }

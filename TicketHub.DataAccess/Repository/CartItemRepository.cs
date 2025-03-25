@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TicketHub.DataAccess.Context;
+﻿using TicketHub.DataAccess.Context;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 
@@ -8,6 +7,7 @@ namespace TicketHub.DataAccess.Repository;
 public class CartItemRepository : Repository<CartItem>, ICartItemRepository
 {
     private readonly ApplicationDbContext _context;
+
     public CartItemRepository(ApplicationDbContext context) : base(context)
     {
         _context = context;
@@ -22,5 +22,4 @@ public class CartItemRepository : Repository<CartItem>, ICartItemRepository
     {
         _context.CartItems.UpdateRange(cartItems);
     }
-    
 }

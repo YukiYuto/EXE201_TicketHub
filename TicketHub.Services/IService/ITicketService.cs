@@ -32,7 +32,7 @@ public interface ITicketService
     Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
     Task<ResponseDto> DeleteTicket(ClaimsPrincipal user, Guid ticketId);
     Task<ResponseDto> AcceptTicket(ClaimsPrincipal user, Guid ticketId);
-    Task<ResponseDto> RejectTicket(ClaimsPrincipal user, Guid ticketId);
-    Task<ResponseDto> GenerateQRCode(Guid ticketId, string serialNumber);
-    Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, string serialNumber);*/
+    Task<ResponseDto> RejectTicket(ClaimsPrincipal user, Guid ticketId);*/
+    Task<ResponseDto> GenerateQRCode(Guid ticketId, Guid serialNumber);
+    Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, Guid serialNumber);
 }

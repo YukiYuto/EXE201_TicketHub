@@ -10,5 +10,7 @@ public class UpdateEventDto
     public DateTime EventDate { get; set; }
     public string Location { get; set; } = null!;
     public string? EventImage { get; set; }
+    /*
     public List<TicketTemplateDto> TicketTemplates { get; set; } = new();
+*/
 }

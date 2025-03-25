@@ -72,23 +72,22 @@ public class TicketsController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
-/*
     [HttpGet("generate-qr-code")]
-    public async Task<ActionResult<ResponseDto>> GenerateQRCode(Guid ticketId, string serialNumber)
+    public async Task<ActionResult<ResponseDto>> GenerateQRCode(Guid ticketId, Guid serialNumberId)
     {
-        var responseDto = await _ticketService.GenerateQRCode(ticketId, serialNumber);
+        var responseDto = await _ticketService.GenerateQRCode(ticketId, serialNumberId);
 
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
     [HttpPost("scan-qr-code")]
-    public async Task<ActionResult<ResponseDto>> ScanQRCode(Guid ticketId, string serialNumber)
+    public async Task<ActionResult<ResponseDto>> ScanQRCode(Guid ticketId, Guid serialNumberId)
     {
-        if (ticketId == null || ticketId == Guid.Empty || string.IsNullOrEmpty(serialNumber))
+        if (ticketId == null || ticketId == Guid.Empty || serialNumberId == null || serialNumberId == Guid.Empty)
             return BadRequest(new { message = "Dữ liệu không hợp lệ." });
 
-        var responseDto = await _ticketService.ValidateAndUpdateTicket(ticketId, serialNumber);
+        var responseDto = await _ticketService.ValidateAndUpdateTicket(ticketId, serialNumberId);
 
         return StatusCode(responseDto.StatusCode, responseDto);
-    }*/
+    }
 }
