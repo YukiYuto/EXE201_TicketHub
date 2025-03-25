@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketHub.Models.DTO.TicketSerialNumber;
 using TicketHub.Services.IService;
+using TicketHub.Utility.Constants;
 
 namespace TicketHub.API.Controllers;
 
@@ -17,6 +18,7 @@ public class TicketSerialNumberController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = StaticUserRoles.Organization)]
     public async Task<IActionResult> CreateTicketSerialNumber(
         [FromBody] List<CreateTicketSerialNumberDto> createTicketSerialNumberDto)
     {
