@@ -37,15 +37,28 @@ public class TicketSerialNumberService : ITicketSerialNumberService
             await _unitOfWork.TicketTemplateRepository.GetListAsync(t =>
                 ticketTemplateIds.Contains(t.TicketTemplateId));
 
-        var ticketSerialNumbers = createTicketSerialNumberDto.Select(dto => new TicketSerialNumber
+        var ticketSerialNumbers = new List<TicketSerialNumber>();
+
+        foreach (var ticketTemplate in ticketTemplates)
         {
-            SerialNumberId = Guid.NewGuid(),
-            TicketTemplateId = dto.TicketTemplateId,
-            SerialNumber = dto.SerialNumber,
-            CreatedBy = user.FindFirstValue(ClaimTypes.Name),
-            CreatedTime = DateTime.UtcNow.AddHours(7),
-            Status = "ACTIVE"
-        }).ToList();
+            var serialNumbersSet = new HashSet<string>();
+
+            while (serialNumbersSet.Count < ticketTemplate.TotalQuantity)
+            {
+                var serialNumber = GenerateRandomSerial();
+                if (!serialNumbersSet.Contains(serialNumber)) serialNumbersSet.Add(serialNumber);
+            }
+
+            ticketSerialNumbers.AddRange(serialNumbersSet.Select(serial => new TicketSerialNumber
+            {
+                SerialNumberId = Guid.NewGuid(),
+                TicketTemplateId = ticketTemplate.TicketTemplateId,
+                SerialNumber = serial,
+                CreatedBy = user.FindFirstValue(ClaimTypes.Name),
+                CreatedTime = DateTime.UtcNow.AddHours(7),
+                Status = "ACTIVE"
+            }));
+        }
 
         await _unitOfWork.TicketSerialNumberRepository.AddRangeAsync(ticketSerialNumbers);
         await _unitOfWork.SaveAsync();
@@ -56,9 +69,10 @@ public class TicketSerialNumberService : ITicketSerialNumberService
             TicketTemplateId = tsn.TicketTemplateId,
             SerialNumber = tsn.SerialNumber
         }).ToList();
+
         return new ResponseDto
         {
-            Message = "Ticket Serial Number created successfully",
+            Message = "Ticket Serial Numbers created successfully",
             IsSuccess = true,
             StatusCode = 201,
             Result = resultDto
@@ -215,5 +229,12 @@ public class TicketSerialNumberService : ITicketSerialNumberService
                 resultDto
             }
         };
+    }
+
+// Hàm tạo số serial ngẫu nhiên 6 chữ số
+    private string GenerateRandomSerial()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
     }
 }

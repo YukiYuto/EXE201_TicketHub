@@ -200,7 +200,7 @@ public class PaymentService : IPaymentService
                 Description = result.description.Trim(),
                 CancelUrl = paymentData.cancelUrl,
                 ReturnUrl = paymentData.returnUrl,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow.AddHours(7),
                 Status = StaticPayment.paymentStatusPending
             };
 
