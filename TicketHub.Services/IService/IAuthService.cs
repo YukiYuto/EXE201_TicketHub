@@ -20,9 +20,4 @@ public interface IAuthService
     Task<ResponseDto> ForgotPassword(EmailDto forgotPasswordDto);
 
     Task<ResponseDto> ResetPassword(ResetPasswordDto resetPasswordDto);
-    //Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal user);
-    /*Task<MemoryStream> GetUserAvatar(ClaimsPrincipal user);
-    Task<ResponseDto> LockUser(string id);
-    Task<ResponseDto> GetUserById(Guid userId);
-    Task<ResponseDto> UnlockUser(string id);*/
 }

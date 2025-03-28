@@ -294,7 +294,7 @@ public class AuthService : IAuthService
 
         // Parse response từ Google
         var googleUser = JsonConvert.DeserializeObject<GoogleUserInfo>(response);
-        if (googleUser == null || googleUser.email == null)
+        if (googleUser == null)
             return new ResponseDto
             {
                 Message = "Invalid Google Access Token",
@@ -306,10 +306,6 @@ public class AuthService : IAuthService
 
         // Tìm kiếm người dùng trong database
         var user = await _userManager.FindByEmailAsync(email);
-        UserLoginInfo? userLoginInfo = null;
-        if (user is not null)
-            userLoginInfo = (await _userManager.GetLoginsAsync(user))
-                .FirstOrDefault(x => x.LoginProvider == StaticLoginProvider.Google);
 
         if (user?.LockoutEnd is not null)
             return new ResponseDto
@@ -318,19 +314,6 @@ public class AuthService : IAuthService
                 IsSuccess = false,
                 StatusCode = 403,
                 Result = null
-            };
-
-        if (user is not null && userLoginInfo is null)
-            return new ResponseDto
-            {
-                Result = new SignResponseDto
-                {
-                    AccessToken = "",
-                    RefreshToken = ""
-                },
-                Message = "The email is using by another user",
-                IsSuccess = false,
-                StatusCode = 400
             };
 
         // Nếu user chưa tồn tại, tạo user mới và thêm role "Member"
@@ -343,7 +326,6 @@ public class AuthService : IAuthService
                 UserName = email,
                 AvatarUrl = "",
                 Country = "",
-                //CCCD = "",
                 Address = "",
                 EmailConfirmed = true
             };
@@ -355,7 +337,8 @@ public class AuthService : IAuthService
                 {
                     Message = "Error creating user",
                     IsSuccess = false,
-                    StatusCode = 400
+                    StatusCode = 500,
+                    Result = createUserResult.Errors
                 };
 
             // Thêm thông tin đăng nhập Google vào tài khoản
@@ -386,7 +369,6 @@ public class AuthService : IAuthService
             !string.IsNullOrEmpty(user.Address) &&
             !string.IsNullOrEmpty(user.AvatarUrl) &&
             !string.IsNullOrEmpty(user.Country);
-        //!string.IsNullOrEmpty(user.CCCD);
 
         // Tạo Access Token và Refresh Token cho user
         var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user!);
@@ -456,7 +438,6 @@ public class AuthService : IAuthService
                 return new ResponseDto { Message = "Customer profile not found", StatusCode = 404, IsSuccess = false };
 
             user.FullName = updateUserProfileDto.FullName ?? user.FullName;
-            user.Address = updateUserProfileDto.Address ?? user.Address;
             customer.CCCD = updateUserProfileDto.CCCD ?? customer.CCCD;
             customer.Gender = updateUserProfileDto.Gender ?? customer.Gender;
             user.BirthDate = updateUserProfileDto.BirthDate ?? user.BirthDate;
@@ -465,7 +446,7 @@ public class AuthService : IAuthService
         }
 
 
-        if (roles.Contains(StaticUserRoles.Organization))
+        else if (roles.Contains(StaticUserRoles.Organization))
         {
             var organizer = await _unitOfWork.OrganizationRepository.GetFirstOrDefaultAsync(o => o.UserId == userId);
             if (organizer == null)
@@ -864,88 +845,4 @@ public class AuthService : IAuthService
             Result = null
         };
     }
-
-    /*public async Task<ResponseDto> UploadUserAvatar(IFormFile file, ClaimsPrincipal User)
-    {
-        try
-        {
-            if (file == null || file.Length == 0)
-                return new ResponseDto
-                {
-                    Message = "File is empty!",
-                    IsSuccess = false,
-                    StatusCode = 400
-                };
-
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return new ResponseDto
-                {
-                    Message = "Not authenticated!",
-                    IsSuccess = false,
-                    StatusCode = 401
-                };
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return new ResponseDto
-                {
-                    Message = "User does not exist",
-                    IsSuccess = false,
-                    StatusCode = 404
-                };
-
-            // 🔹 Upload ảnh lên Firebase
-            var responseDto = await _firebaseService.UploadImageUser(file, StaticFirebaseFolders.UserAvatars);
-            if (!responseDto.IsSuccess || string.IsNullOrEmpty(responseDto.Result?.ToString()))
-                return new ResponseDto
-                {
-                    Message = "Image upload failed!",
-                    IsSuccess = false,
-                    StatusCode = 500
-                };
-
-            // 🔹 Cập nhật Avatar URL
-            user.AvatarUrl = responseDto.Result?.ToString();
-            var updateResult = await _userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
-                return new ResponseDto
-                {
-                    Message = "Failed to update user avatar!",
-                    IsSuccess = false,
-                    StatusCode = 500
-                };
-
-            // 🔹 Xóa refresh token cũ nếu có
-            var existingRefreshToken = await _tokenService.RetrieveRefreshToken(user.Id);
-            if (!string.IsNullOrEmpty(existingRefreshToken)) await _tokenService.DeleteRefreshToken(user.Id);
-
-            // 🔹 Tạo Access Token & Refresh Token mới
-            var accessToken = await _tokenService.GenerateJwtAccessTokenAsync(user);
-            var refreshToken = await _tokenService.GenerateJwtRefreshTokenAsync(user);
-            await _tokenService.StoreRefreshToken(user.Id, refreshToken);
-
-            return new ResponseDto
-            {
-                Message = "Upload user avatar successfully!",
-                IsSuccess = true,
-                StatusCode = 200,
-                Result = new AvatarTokenDto
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken,
-                    AvatarUrl = user.AvatarUrl
-                }
-            };
-        }
-        catch (Exception e)
-        {
-            return new ResponseDto
-            {
-                Message = $"Error: {e.Message}",
-                IsSuccess = false,
-                StatusCode = 500
-            };
-        }
-    }*/
 }
