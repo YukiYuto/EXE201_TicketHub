@@ -1,4 +1,5 @@
-﻿using TicketHub.DataAccess.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using TicketHub.DataAccess.Context;
 using TicketHub.DataAccess.IRepository;
 using TicketHub.Models.Domain;
 
@@ -11,5 +12,13 @@ public class TransactionRepository : Repository<Transaction>, ITransactionReposi
     public TransactionRepository(ApplicationDbContext context) : base(context)
     {
         _context = context;
+    }
+
+    public async Task<List<Transaction>> GetTransactionsAsync(DateTime startDate, DateTime endDate)
+    {
+        return await _context.Transactions
+            .Where(t => t.TransactionDateTime >= startDate.ToUniversalTime() &&
+                        t.TransactionDateTime <= endDate.ToUniversalTime())
+            .ToListAsync();
     }
 }

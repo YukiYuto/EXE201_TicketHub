@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFirebaseService, FirebaseService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<ITransactionService, TransactionService>();
+        services.AddScoped<IManagerService, ManagerService>();
         return services;
     }
 }
