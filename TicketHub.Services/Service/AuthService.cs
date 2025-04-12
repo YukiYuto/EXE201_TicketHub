@@ -26,8 +26,7 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AuthService
-    (
+    public AuthService(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         ITokenService tokenService,
@@ -658,7 +657,7 @@ public class AuthService : IAuthService
         // Xây dựng liên kết xác thực.
         // Lưu ý: thay đổi URL cho phù hợp với môi trường (local hay production)
         var verificationLink =
-            $"http://localhost:5173/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+            $"https://tickethub-9f8e9.web.app/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
         // Gọi EmailService để gửi email xác thực sử dụng template VerificationEmailTemplate
         var emailSent = await _emailService.SendVerificationEmailAsync(user.Email!, verificationLink, user.FullName);
@@ -767,7 +766,7 @@ public class AuthService : IAuthService
         var encodedToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
 
         // Tạo link reset password
-        var resetLink = $"http://localhost:5173/reset-password?email={user.Email}&token={encodedToken}";
+        var resetLink = $"https://tickethub-9f8e9.web.app/reset-password?email={user.Email}&token={encodedToken}";
 
         var emailSent = await _emailService.SendPasswordResetEmailAsync(user.Email!, resetLink);
 
