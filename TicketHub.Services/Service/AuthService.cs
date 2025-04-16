@@ -170,7 +170,7 @@ public class AuthService : IAuthService
             Country = signUpOrganizationDto.Country,
             PhoneNumber = signUpOrganizationDto.PhoneNumber,
             AvatarUrl = "",
-            LockoutEnabled = false
+            LockoutEnabled = true
         };
 
         // Thêm người dùng mới vào database
