@@ -11,8 +11,7 @@ public interface ITicketService
     Task<ResponseDto> CreateTicketByOrganization(ClaimsPrincipal user,
         CreateTicketTemplateDto createTicketTemplateDto);
 
-    Task<ResponseDto> GetTicketTemplates
-    (
+    Task<ResponseDto> GetTicketTemplates(
         ClaimsPrincipal user,
         string? filterOn,
         string? filterQuery,
@@ -22,17 +21,10 @@ public interface ITicketService
     );
 
     Task<ResponseDto> GetTicketByUserId(ClaimsPrincipal user);
-
+    Task<ResponseDto> GetTicketTemplateByUserId(ClaimsPrincipal user);
     Task<ResponseDto> GetTicketTemplateById(Guid ticketTemplateId);
-    Task<ResponseDto> GetTicketTemplateByEventId(ClaimsPrincipal user, Guid eventId);
-
+    Task<ResponseDto> GetTicketTemplateByEventId(Guid eventId);
     Task<ResponseDto> UpdateTicketTemplate(ClaimsPrincipal user, UpdateTicketDto updateTicketDto);
-
-    /*
-    Task<ResponseDto> CreateTicketByCustomer(ClaimsPrincipal user, CreateTicketDto createTicketDtos);
-    Task<ResponseDto> DeleteTicket(ClaimsPrincipal user, Guid ticketId);
-    Task<ResponseDto> AcceptTicket(ClaimsPrincipal user, Guid ticketId);
-    Task<ResponseDto> RejectTicket(ClaimsPrincipal user, Guid ticketId);*/
-    Task<ResponseDto> GenerateQRCode(Guid ticketId, Guid serialNumber);
+    Task<ResponseDto> GenerateQrCode(Guid ticketId, Guid serialNumber);
     Task<ResponseDto> ValidateAndUpdateTicket(Guid ticketId, Guid serialNumber);
 }

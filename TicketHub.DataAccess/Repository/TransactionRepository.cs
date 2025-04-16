@@ -17,6 +17,8 @@ public class TransactionRepository : Repository<Transaction>, ITransactionReposi
     public async Task<List<Transaction>> GetTransactionsAsync(DateTime startDate, DateTime endDate)
     {
         return await _context.Transactions
+            .Include(t => t.Customer)
+            .ThenInclude(c => c.User)
             .Where(t => t.TransactionDateTime >= startDate.ToUniversalTime() &&
                         t.TransactionDateTime <= endDate.ToUniversalTime())
             .ToListAsync();

@@ -42,7 +42,7 @@ public class TicketsController : ControllerBase
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
-    [HttpGet("user")]
+    [HttpGet("customer")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> GetTicketByUserId()
     {
@@ -60,7 +60,7 @@ public class TicketsController : ControllerBase
     [HttpGet("event/{eventId}")]
     public async Task<ActionResult<ResponseDto>> GetTicketTemplateByEventId(Guid eventId)
     {
-        var responseDto = await _ticketService.GetTicketTemplateByEventId(User, eventId);
+        var responseDto = await _ticketService.GetTicketTemplateByEventId(eventId);
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
@@ -74,15 +74,15 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("generate-qr-code")]
-    public async Task<ActionResult<ResponseDto>> GenerateQRCode(Guid ticketId, Guid serialNumberId)
+    public async Task<ActionResult<ResponseDto>> GenerateQrCode(Guid ticketId, Guid serialNumberId)
     {
-        var responseDto = await _ticketService.GenerateQRCode(ticketId, serialNumberId);
+        var responseDto = await _ticketService.GenerateQrCode(ticketId, serialNumberId);
 
         return StatusCode(responseDto.StatusCode, responseDto);
     }
 
     [HttpPost("scan-qr-code")]
-    public async Task<ActionResult<ResponseDto>> ScanQRCode(Guid ticketId, Guid serialNumberId)
+    public async Task<ActionResult<ResponseDto>> ScanQrCode(Guid ticketId, Guid serialNumberId)
     {
         if (ticketId == null || ticketId == Guid.Empty || serialNumberId == null || serialNumberId == Guid.Empty)
             return BadRequest(new { message = "Dữ liệu không hợp lệ." });
