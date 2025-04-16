@@ -157,7 +157,7 @@ public class CategoryService : ICategoryService
             ParentCategoryId = parentCategoryId,
             CreatedTime = DateTime.UtcNow,
             CreatedBy = user.Identity.Name,
-            Status = 0
+            Status = 1
         };
 
         // Thêm category vào cơ sở dữ liệu
@@ -184,40 +184,7 @@ public class CategoryService : ICategoryService
 
     public async Task<ResponseDto> UpdateCategory(ClaimsPrincipal user, UpdateCategoryDto updateCategoryDto)
     {
-        var categoryId =
-            await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == updateCategoryDto.CategoryId);
-        if (categoryId == null)
-            return new ResponseDto
-            {
-                Message = "Category not found",
-                Result = null,
-                IsSuccess = false,
-                StatusCode = 404
-            };
-
-        //update Category
-        categoryId.CategoryName = updateCategoryDto.CategoryName;
-        categoryId.ParentCategoryId = updateCategoryDto.ParentCategoryId;
-        categoryId.UpdatedBy = user.Identity.Name;
-        categoryId.UpdatedTime = DateTime.Now;
-
-
-        //save changes
-        _unitOfWork.CategoryRepository.Update(categoryId);
-        var save = await _unitOfWork.SaveAsync();
-
-        return new ResponseDto
-        {
-            Message = "Category updated successfully",
-            Result = categoryId,
-            IsSuccess = true,
-            StatusCode = 201
-        };
-    }
-
-    public async Task<ResponseDto> DeleteCategory(ClaimsPrincipal user, Guid categoryId)
-    {
-        var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == categoryId);
+        var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == updateCategoryDto.CategoryId);
         if (category == null)
             return new ResponseDto
             {
@@ -227,20 +194,76 @@ public class CategoryService : ICategoryService
                 StatusCode = 404
             };
 
-        category.Status = 0;
-        category.UpdatedBy = user.Identity.Name;
-        category.UpdatedTime = DateTime.UtcNow;
-
+        var updateCategory = new Category
+        {
+            CategoryName = updateCategoryDto.CategoryName,
+            ParentCategoryId = updateCategoryDto.ParentCategoryId,
+            UpdatedBy = user.Identity.Name,
+            UpdatedTime = DateTime.UtcNow,
+        };
+        
         //save changes
-        _unitOfWork.CategoryRepository.Update(category);
+        _unitOfWork.CategoryRepository.Update(updateCategory);
         var save = await _unitOfWork.SaveAsync();
 
         return new ResponseDto
         {
-            Message = "Category delete successfully",
-            Result = category,
+            Message = "Category updated successfully",
+            Result = updateCategory,
             IsSuccess = true,
             StatusCode = 201
+        };
+    }
+
+    public async Task<ResponseDto> DeleteCategory(ClaimsPrincipal user, Guid categoryId)
+    {
+        async Task SoftDelete(Guid id)
+        {
+            var cat = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == id);
+            if (cat != null)
+            {
+                _unitOfWork.CategoryRepository.Remove(cat);
+
+                var children = await _unitOfWork.CategoryRepository.GetAllAsync(x => x.ParentCategoryId == id);
+                foreach (var child in children)
+                {
+                    await SoftDelete(child.CategoryId);
+                }
+            }
+        }
+
+        var category = await _unitOfWork.CategoryRepository.GetAsync(x => x.CategoryId == categoryId);
+        if (category == null)
+        {
+            return new ResponseDto
+            {
+                Message = "Category not found",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 404
+            };
+        }
+
+        await SoftDelete(categoryId);
+
+        var save = await _unitOfWork.SaveAsync();
+        if (save == 0)
+        {
+            return new ResponseDto
+            {
+                Message = "Failed to delete category",
+                Result = null,
+                IsSuccess = false,
+                StatusCode = 500
+            };
+        }
+
+        return new ResponseDto
+        {
+            Message = "Category and its subcategories deleted successfully",
+            Result = category,
+            IsSuccess = true,
+            StatusCode = 200
         };
     }
 
