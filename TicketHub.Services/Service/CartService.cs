@@ -342,55 +342,6 @@ public class CartService : ICartService
             }
         };
     }
-    //admin
-    /*public async Task<ResponseDto> GetCartByUserId(ClaimsPrincipal User, string userId)
-    {
-        // Kiểm tra quyền admin
-        var isAdmin = User.IsInRole(StaticUserRoles.Admin);
-        if (!isAdmin)
-        {
-            return new ResponseDto()
-            {
-                Message = "You are not authorized to view user carts",
-                IsSuccess = false,
-                StatusCode = 403
-            };
-        }
-
-        // Lấy giỏ hàng của user
-        var cart = await _unitOfWork.CartRepository.GetAsync(x => x.UserId == userId, includeProperties: "CartItems.Ticket");
-        if (cart == null)
-        {
-            return new ResponseDto()
-            {
-                Message = "Cart not found for this user",
-                IsSuccess = false,
-                StatusCode = 404
-            };
-        }
-
-        // Chuyển đổi sang DTO
-        var cartDto = new CartDto
-        {
-            CartId = cart.CartId,
-            UserId = cart.UserId,
-            TotalAmount = cart.TotalAmount,
-            CartItemsDtos = cart.CartItems.Select(ci => new CartItemDto
-            {
-                CartItemId = ci.CartItemId,
-                TicketId = ci.Ticket.TicketId,
-                TicketPrice = ci.Ticket.TicketPrice
-            }).ToList()
-        };
-
-        return new ResponseDto()
-        {
-            Message = "Get cart successfully",
-            IsSuccess = true,
-            StatusCode = 200,
-            Result = cartDto
-        };
-    }*/
 
     public async Task<ResponseDto> GetAllCartItem(ClaimsPrincipal user)
     {

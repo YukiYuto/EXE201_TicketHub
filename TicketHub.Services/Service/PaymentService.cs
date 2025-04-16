@@ -55,8 +55,7 @@ public class PaymentService : IPaymentService
         };
     }
 
-    public async Task<ResponseDto> GetAll
-    (
+    public async Task<ResponseDto> GetAll(
         ClaimsPrincipal User,
         int pageNumber = 1,
         int pageSize = 10,
@@ -311,6 +310,10 @@ public class PaymentService : IPaymentService
                     serialNumber.Status = "DISABLE";
                     _unitOfWork.TicketSerialNumberRepository.Update(serialNumber);
                 }
+
+                // Cập nhật số lượng vé khả dụng trong TicketTemplate
+                ticketTemplate.AvailableQuantity -= orderDetail.Quantity;
+                _unitOfWork.TicketTemplateRepository.Update(ticketTemplate);
             }
 
             await _unitOfWork.TicketRepository.AddRangeAsync(tickets);
