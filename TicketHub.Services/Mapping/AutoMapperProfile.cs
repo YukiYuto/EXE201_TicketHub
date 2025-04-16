@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using TicketHub.Models.Domain;
+using TicketHub.Models.DTO.Customer;
 using TicketHub.Models.DTO.Event;
 using TicketHub.Models.DTO.Order;
+using TicketHub.Models.DTO.Orgainzer;
 using TicketHub.Models.DTO.Payment;
 using TicketHub.Models.DTO.Ticket;
 using TicketHub.Models.DTO.TicketSerialNumber;
@@ -14,6 +16,30 @@ public class AutoMapperProfile : Profile
 {
     public AutoMapperProfile()
     {
+        //Customer
+        CreateMap<Customer, CustomerGetAllDto>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : null))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null))
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.User != null ? src.User.Country : null))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.User != null ? src.User.Address : null))
+            .ForMember(dest => dest.BirthDate, opt => opt.MapFrom(src => src.User != null ? src.User.BirthDate : null))
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.User != null ? src.User.AvatarUrl : null))
+            .ForMember(dest => dest.CCCD, opt => opt.MapFrom(src => src.CCCD))
+            .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+            .ForMember(dest => dest.PhoneNumber,
+                opt => opt.MapFrom(src => src.User != null ? src.User.PhoneNumber : null));
+        //Organizer
+        CreateMap<Organizer, OrganizerGetAllDto>()
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null))
+            .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.User != null ? src.User.Country : null))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.User != null ? src.User.Address : null))
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.User != null ? src.User.AvatarUrl : null))
+            .ForMember(dest => dest.PhoneNumber,
+                opt => opt.MapFrom(src => src.User != null ? src.User.PhoneNumber : null))
+            .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.OrganizationName))
+            .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxId));
+
+        //ticketserialNumber
         CreateMap<TicketSerialNumber, CreateTicketSerialNumberDto>()
             .ForMember(dest => dest.TicketTemplateId, opt => opt.MapFrom(src => src.TicketTemplateId))
             .ForMember(dest => dest.SerialNumber, opt => opt.MapFrom(src => src.SerialNumber))

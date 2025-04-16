@@ -19,8 +19,7 @@ public class EventService : IEventService
         _mapper = mapper;
     }
 
-    public async Task<ResponseDto> GetEvents
-    (
+    public async Task<ResponseDto> GetEvents(
         ClaimsPrincipal user,
         string? filterOn,
         string? filterQuery,
@@ -340,33 +339,33 @@ public class EventService : IEventService
                 StatusCode = 400
             };
 
-        var events = await _unitOfWork.EventRepository.GetAsync(x => x.CreatedBy == userId);
+        var events = await _unitOfWork.EventRepository.GetAllAsync(x => x.CreatedBy == userId);
 
-        if (events == null)
+        if (events == null || !events.Any())
             return new ResponseDto
             {
-                Message = "Event not found",
+                Message = "No events found",
                 Result = null,
                 IsSuccess = false,
                 StatusCode = 404
             };
 
-        var eventDto = new GetEventDto
+        var eventDtos = events.Select(e => new GetEventDto
         {
-            EventId = events.EventId,
-            EventName = events.EventName,
-            EventDate = events.EventDate,
-            Location = events.Location,
-            EventDescription = events.EventDescription,
-            Status = events.Status,
-            EventImage = events.EventImage,
-            CategoryId = events.CategoryId
-        };
+            EventId = e.EventId,
+            EventName = e.EventName,
+            EventDate = e.EventDate,
+            Location = e.Location,
+            EventDescription = e.EventDescription,
+            Status = e.Status,
+            EventImage = e.EventImage,
+            CategoryId = e.CategoryId
+        }).ToList();
 
         return new ResponseDto
         {
-            Message = "Event found successfully",
-            Result = eventDto,
+            Message = "Events found successfully",
+            Result = eventDtos,
             IsSuccess = true,
             StatusCode = 200
         };
